@@ -4,8 +4,10 @@ import de.henningkloss.portfolio.auth.JwtAuthFilter;
 import de.henningkloss.portfolio.auth.UserDetailsServiceImpl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.security.autoconfigure.web.servlet.PathRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.Environment;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -13,6 +15,8 @@ import org.springframework.security.authentication.dao.DaoAuthenticationProvider
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -32,6 +36,7 @@ public class SecurityConfig {
 
     private final UserDetailsServiceImpl userDetailsService;
     private final JwtAuthFilter jwtAuthFilter;
+    private final Environment environment;
 
     /** Origins of the Vite dev server / deployed frontend, comma separated. */
     @Value("${app.cors.allowed-origins:http://localhost:5173}")
@@ -70,25 +75,37 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        boolean localProfileActive = environment.matchesProfiles("local");
+
         http
                 // no cookies, no sessions -> CSRF tokens would protect nothing
-                .csrf(csrf -> csrf.disable())
+                .csrf(AbstractHttpConfigurer::disable)
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(auth -> auth
-                        // public: login/registration
-                        .requestMatchers(HttpMethod.POST, "/api/auth/register", "/api/auth/login").permitAll()
-                        // public: news feed and shop catalogue
-                        .requestMatchers(HttpMethod.GET, "/api/blog/**", "/api/products/**").permitAll()
-                        // public: newsletter opt-in and opt-out
-                        .requestMatchers(HttpMethod.POST, "/api/newsletter/subscribe", "/api/newsletter/unsubscribe").permitAll()
-                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
-                        .anyRequest().authenticated()
-                )
+                .authorizeHttpRequests(auth -> {
+                    if (localProfileActive) {
+                        // H2 console for local DB inspection only, never in deployed environments
+                        auth.requestMatchers(PathRequest.toH2Console()).permitAll();
+                    }
+                    auth
+                            // public: login/registration
+                            .requestMatchers(HttpMethod.POST, "/api/auth/register", "/api/auth/login").permitAll()
+                            // public: news feed and shop catalogue
+                            .requestMatchers(HttpMethod.GET, "/api/blog/**", "/api/products/**").permitAll()
+                            // public: newsletter opt-in and opt-out
+                            .requestMatchers(HttpMethod.POST, "/api/newsletter/subscribe", "/api/newsletter/unsubscribe").permitAll()
+                            .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                            .anyRequest().authenticated();
+                })
                 // without this, anonymous requests would answer 403 instead of 401
                 .exceptionHandling(ex -> ex.authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)))
                 .authenticationProvider(authenticationProvider())
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+
+        if (localProfileActive) {
+            // the H2 console renders itself in a frame, which X-Frame-Options: DENY would block
+            http.headers(headers -> headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin));
+        }
 
         return http.build();
     }
