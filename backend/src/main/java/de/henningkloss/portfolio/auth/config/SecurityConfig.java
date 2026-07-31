@@ -88,6 +88,8 @@ public class SecurityConfig {
                         auth.requestMatchers(PathRequest.toH2Console()).permitAll();
                     }
                     auth
+                            // public: liveness/readiness probes of the container platform
+                            .requestMatchers("/actuator/health", "/actuator/health/**").permitAll()
                             // public: login/registration
                             .requestMatchers(HttpMethod.POST, "/api/auth/register", "/api/auth/login").permitAll()
                             // public: news feed and shop catalogue

@@ -1,0 +1,58 @@
+# Production-like local stack: the same images CI pushes to GHCR, wired the way the k3s
+# manifests will wire them (frontend -> backend -> Postgres). Used for local smoke tests
+# and by the "smoke-test" job in .github/workflows/ci.yml.
+#
+#   docker compose up --build      -> app on http://localhost:8080
+#
+# The credentials below are local development defaults; production values come from
+# Kubernetes secrets (see architektur-entscheidungen.md, section 4).
+
+services:
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: portfolio
+      POSTGRES_USER: portfolio
+      POSTGRES_PASSWORD: portfolio
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U portfolio -d portfolio"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    volumes:
+      - db-data:/var/lib/postgresql/data
+
+  backend:
+    build: ./backend
+    environment:
+      DB_URL: jdbc:postgresql://db:5432/portfolio
+      DB_USERNAME: portfolio
+      DB_PASSWORD: portfolio
+      JWT_SECRET: ${JWT_SECRET:-local-compose-secret-local-compose-secret}
+      # nginx proxies /api, so browser requests are same-origin and CORS stays unused
+      CORS_ALLOWED_ORIGINS: http://localhost:8080
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@example.com}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-admin-local-password}
+    # exposed only so smoke tests can hit the API directly; the browser goes through nginx
+    ports:
+      - "8081:8080"
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      # the runtime image is a plain JRE without curl, so check the open port instead
+      test: ["CMD-SHELL", "bash -c '</dev/tcp/127.0.0.1/8080'"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "8080:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+
+volumes:
+  db-data:

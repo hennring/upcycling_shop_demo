@@ -1,0 +1,130 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+# a newer push to the same branch makes a running build obsolete
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  REGISTRY: ghcr.io
+
+jobs:
+  backend-build-test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: maven
+      - run: chmod +x mvnw
+      - run: ./mvnw -B verify
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-surefire-reports
+          path: backend/target/surefire-reports/
+          if-no-files-found: warn
+
+  frontend-build-test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+      - run: npm run lint
+      # "build" runs tsc first, so type errors fail the pipeline too
+      - run: npm run build
+
+  # Runs the whole stack (nginx -> Spring Boot -> Postgres) the way it will run on the VM.
+  # Catches what unit tests cannot: broken Dockerfiles, the nginx /api proxy, and schema
+  # generation against real Postgres instead of H2.
+  smoke-test:
+    needs: [backend-build-test, frontend-build-test]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build images and start the stack
+        run: docker compose up --build --detach --wait --wait-timeout 300
+      - name: Frontend serves the app
+        run: |
+          curl --fail --silent --show-error http://localhost:8080/healthz
+          curl --fail --silent --show-error http://localhost:8080/ | grep -q '<div id="root">'
+      - name: Public API answers through the nginx proxy
+        run: |
+          curl --fail --silent --show-error http://localhost:8081/actuator/health | grep -q '"status":"UP"'
+          curl --fail --silent --show-error http://localhost:8080/api/blog
+          curl --fail --silent --show-error http://localhost:8080/api/products
+      - name: Protected endpoints reject anonymous requests
+        run: |
+          status=$(curl --silent --output /dev/null --write-out '%{http_code}' http://localhost:8080/api/cart)
+          test "$status" = "401" || { echo "expected 401 from /api/cart, got $status"; exit 1; }
+      - name: Registration and login work end to end
+        run: |
+          token=$(curl --fail --silent --show-error -X POST http://localhost:8080/api/auth/register \
+            -H 'Content-Type: application/json' \
+            -d '{"email":"smoke@example.com","password":"password123"}' \
+            | sed -n 's/.*"token":"\([^"]*\)".*/\1/p')
+          test -n "$token" || { echo "no token in register response"; exit 1; }
+          curl --fail --silent --show-error http://localhost:8080/api/auth/me \
+            -H "Authorization: Bearer $token" | grep -q '"email":"smoke@example.com"'
+      - if: failure()
+        run: docker compose logs --no-color
+      - if: always()
+        run: docker compose down --volumes
+
+  images:
+    needs: [smoke-test]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      matrix:
+        component: [backend, frontend]
+    steps:
+      - uses: actions/checkout@v4
+      # GHCR only accepts lowercase image names, the repository owner can be mixed case
+      - name: Resolve image name
+        run: echo "IMAGE=${REGISTRY}/$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')/${{ matrix.component }}" >> "$GITHUB_ENV"
+      - uses: docker/setup-buildx-action@v3
+      - if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/build-push-action@v6
+        with:
+          context: ${{ matrix.component }}
+          # arm64 for the Oracle Ampere VM
+          platforms: linux/arm64
+          # on pull requests the image is only built as a check, never published
+          push: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+          tags: |
+            ${{ env.IMAGE }}:${{ github.sha }}
+            ${{ env.IMAGE }}:latest
+          cache-from: type=gha,scope=${{ matrix.component }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.component }}
+
+  # TODO: Phase 0 – once the k3s VM exists, add a `deploy` job here that needs `images`,
+  # connects via a `KUBECONFIG` secret, and runs `kubectl apply -f infra/k8s/` +
+  # `kubectl set image deployment/<name> <container>=<image>:${{ github.sha }}` for backend
+  # and frontend. Deploying the SHA tag instead of `latest` makes rollbacks a one-liner.
