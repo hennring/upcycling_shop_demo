@@ -1,27 +1,22 @@
-import { AuthForm } from './features/auth/AuthForm';
-import { useAuth } from './features/auth/AuthContext';
+import { Route, Routes } from 'react-router-dom';
+import { SiteLayout } from './components/layout/SiteLayout';
+import { LandingPage } from './features/landing/LandingPage';
+import { LoginPage } from './pages/LoginPage';
+import { NotFoundPage } from './pages/NotFoundPage';
 
+// Phase 3 continues here: /shop, /shop/:slug, /cart and /werkstattbuch/:slug are the
+// next routes. The landing page anchors (#produkte, #werkstatt, #werkstattbuch) stay as
+// they are - they only ever point at sections of "/".
 function App() {
-  const { user, loading, login } = useAuth();
-
-  if (loading) {
-    return (
-      <div className="max-w-sm mx-auto p-6">
-        <p className="text-sm text-gray-500">Laden...</p>
-      </div>
-    );
-  }
-
-  if (user) {
-    return (
-      <div className="max-w-sm mx-auto p-6">
-        <h1 className="text-xl font-medium">Angemeldet als {user.email}</h1>
-        <p className="text-sm text-gray-500">Rolle: {user.role}</p>
-      </div>
-    );
-  }
-
-  return <AuthForm onAuthenticated={login} />;
+  return (
+    <Routes>
+      <Route element={<SiteLayout />}>
+        <Route index element={<LandingPage />} />
+        <Route path="login" element={<LoginPage />} />
+        <Route path="*" element={<NotFoundPage />} />
+      </Route>
+    </Routes>
+  );
 }
 
 export default App;

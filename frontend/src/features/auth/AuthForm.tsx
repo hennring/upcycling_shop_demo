@@ -30,8 +30,16 @@ export function AuthForm({ onAuthenticated }: AuthFormProps) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-4 max-w-sm mx-auto p-6">
-      <h2 className="text-xl font-medium">{mode === 'login' ? 'Login' : 'Registrieren'}</h2>
+    <form
+      onSubmit={handleSubmit}
+      className="mx-auto flex max-w-sm flex-col gap-4 rounded-2xl border border-stone-200 bg-white p-8 shadow-sm"
+    >
+      <h2 className="font-display text-xl font-semibold text-stone-900">
+        {mode === 'login' ? 'Anmelden' : 'Konto anlegen'}
+      </h2>
+      <p className="-mt-2 text-sm text-stone-500">
+        Für Bestellungen, den Warenkorb und das Werkstattbuch-Abo.
+      </p>
 
       <input
         type="email"
@@ -39,7 +47,7 @@ export function AuthForm({ onAuthenticated }: AuthFormProps) {
         value={email}
         onChange={(e) => setEmail(e.target.value)}
         required
-        className="border rounded px-3 py-2"
+        className="rounded-lg border border-stone-300 px-3 py-2 focus:border-rust focus:outline-none"
       />
       <input
         type="password"
@@ -48,15 +56,15 @@ export function AuthForm({ onAuthenticated }: AuthFormProps) {
         onChange={(e) => setPassword(e.target.value)}
         required
         minLength={8}
-        className="border rounded px-3 py-2"
+        className="rounded-lg border border-stone-300 px-3 py-2 focus:border-rust focus:outline-none"
       />
 
-      {error && <p className="text-red-600 text-sm">{error}</p>}
+      {error && <p className="text-sm text-red-700">{error}</p>}
 
       <button
         type="submit"
         disabled={submitting}
-        className="bg-purple-600 text-white rounded px-3 py-2 disabled:opacity-50"
+        className="rounded-lg bg-rust px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-rust-dark disabled:opacity-50"
       >
         {mode === 'login' ? 'Anmelden' : 'Registrieren'}
       </button>
@@ -64,7 +72,7 @@ export function AuthForm({ onAuthenticated }: AuthFormProps) {
       <button
         type="button"
         onClick={() => setMode(mode === 'login' ? 'register' : 'login')}
-        className="text-sm text-purple-600 underline"
+        className="text-sm text-rust underline"
       >
         {mode === 'login' ? 'Noch kein Konto? Registrieren' : 'Schon registriert? Anmelden'}
       </button>
