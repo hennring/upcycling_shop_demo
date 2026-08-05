@@ -1,1 +1,19 @@
 @import "tailwindcss";
+
+/**
+ * Brand tokens for "Zweite Chance" (see brand.md, section 9).
+ * Registered as Tailwind theme values, so `bg-rust`, `text-brass` etc. become utilities.
+ */
+@theme {
+  --color-rust: #c2410c;
+  --color-rust-dark: #9a3412;
+  --color-brass: #f59e0b;
+  /* the moss tone from brand.md is intentionally not registered yet - it gets added
+     when the first element actually uses it */
+
+  /* headings should read as printed matter, not as a SaaS dashboard - system serifs
+     only, because a webfont would mean an external request and the project runs on a
+     zero-cost budget */
+  --font-display: 'Iowan Old Style', 'Palatino Linotype', Palatino, 'Book Antiqua', Georgia,
+    serif;
+}
