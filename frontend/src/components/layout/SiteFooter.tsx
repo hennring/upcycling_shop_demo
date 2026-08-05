@@ -6,6 +6,7 @@ const NAV = [
   { href: '/#werkstatt', label: 'Werkstatt' },
   { href: '/#ueber-uns', label: 'Über uns' },
   { href: '/#werkstattbuch', label: 'Werkstattbuch' },
+  { href: '/#werkstattbrief', label: 'Werkstattbrief abonnieren' },
 ];
 
 const MATERIAL = [

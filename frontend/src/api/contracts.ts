@@ -31,7 +31,17 @@ export interface BlogAdapter {
   listArticles(): Promise<Article[]>;
 }
 
+export interface NewsletterAdapter {
+  /**
+   * Opt-in for the "Werkstattbrief". Idempotent: subscribing an address that is already
+   * on the list succeeds silently. The backend never reports whether an address was
+   * already known, so there is no way to read the current subscription state back.
+   */
+  subscribe(email: string): Promise<void>;
+}
+
 export interface BackendAdapter {
   auth: AuthAdapter;
   blog: BlogAdapter;
+  newsletter: NewsletterAdapter;
 }

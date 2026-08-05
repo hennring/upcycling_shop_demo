@@ -4,6 +4,7 @@ import { ProcessSection } from './ProcessSection';
 import { AboutSection } from './AboutSection';
 import { NewsSection } from './NewsSection';
 import { MaterialSection } from './MaterialSection';
+import { NewsletterSection } from '../newsletter/NewsletterSection';
 
 export function LandingPage() {
   return (
@@ -13,6 +14,7 @@ export function LandingPage() {
       <ProcessSection />
       <AboutSection />
       <NewsSection />
+      <NewsletterSection />
       <MaterialSection />
     </>
   );

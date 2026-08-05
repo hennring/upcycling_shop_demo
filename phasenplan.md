@@ -17,6 +17,10 @@ Stand: 15.07.2026
   - Lokal identisch startbar: `docker compose up --build` → App auf http://localhost:8080, API direkt auf http://localhost:8081
   - Deployment-Schritt bewusst noch nicht enthalten: der `deploy`-Job ist als TODO am Ende der Pipeline beschrieben (`kubectl apply -f infra/k8s/` + `kubectl set image ...:<SHA>` über ein `KUBECONFIG`-Secret), `infra/k8s` ist noch leer
 - **Phase 3** – Frontend öffentlicher Bereich (Landing Page, News-Feed, Shop, Login/Registrierung, Newsletter-Formular)
+  - Fertig: Routing + `SiteLayout`, Landing Page (Hero, Produktkategorien, Prozess, Über uns, Material), News-Feed aus `GET /api/blog`, Login/Registrierung (`/login`, JWT im `localStorage`, `AuthContext`)
+  - Fertig: Newsletter-Formular („Werkstattbrief", Abschnitt `#werkstattbrief` auf der Landing Page). Nur für eingeloggte Nutzer, abonniert wird immer die Kontoadresse – ein anonymer Besucher sieht stattdessen den Login-Hinweis. Der Aufruf geht über `api.newsletter.subscribe()` auf `POST /api/newsletter/subscribe` in den `SubscriberService`
+  - Offen: Shop-Seiten (`/shop`, `/shop/:slug`, `/cart`) gegen `GET /api/products/**` und `/api/cart` – die Produktsektion der Landing Page ist bislang statischer Kategorietext aus `brand.md`, kein Katalog aus der API
+  - Hinweis: `POST /api/newsletter/subscribe` bleibt bewusst öffentlich (Phase-1-Kontrakt, Idempotenz + kein Leak, ob eine Adresse bekannt ist). Der Login-Zwang ist damit eine Frontend-Regel; die Anmeldung nimmt keine Fremdadressen an, weil das Feld an das Konto gebunden ist. Der Endpunkt selbst kennt den Nutzer nicht – falls das später verbindlich werden soll, braucht es einen zusätzlichen authentifizierten Endpunkt, der die Adresse aus dem Principal zieht
 - **Phase 4** – Admin Dashboard mit Protected Routes, und Basis-Statistiken (z. B. Abonnentenzahl)
 - **Phase 5** – Verwaltung (CMS & CRM): Artikel erstellen/löschen inkl. Bild-Upload, Newsletter-Editor & -Versand an Abonnenten
 - **Phase 6** – Optional/Stretch: HPA, Prometheus/Grafana, Helm-Chart, zweiter k3s-Node
