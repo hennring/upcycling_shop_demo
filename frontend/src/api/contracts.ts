@@ -114,10 +114,24 @@ export interface NewsletterAdapter {
   subscribe(email: string): Promise<void>;
 }
 
+/** Numbers shown on the admin dashboard tiles. Grows as phase 5/6 add more. */
+export interface AdminStats {
+  activeSubscriberCount: number;
+}
+
+/**
+ * Admin-only calls, separate from the public adapters above. Phase 5 adds blog CRUD and
+ * newsletter send-out here.
+ */
+export interface AdminAdapter {
+  getStats(token: string): Promise<AdminStats>;
+}
+
 export interface BackendAdapter {
   auth: AuthAdapter;
   blog: BlogAdapter;
   shop: ShopAdapter;
   cart: CartAdapter;
   newsletter: NewsletterAdapter;
+  admin: AdminAdapter;
 }

@@ -31,3 +31,15 @@ export class UnauthorizedError extends Error {
     this.name = 'UnauthorizedError';
   }
 }
+
+/**
+ * Authenticated, but the account lacks the required role: a 403. Distinct from
+ * {@link UnauthorizedError} - re-login would not fix this, the admin area needs its own
+ * "kein Zugriff" message instead of bouncing to the login form.
+ */
+export class ForbiddenError extends Error {
+  constructor(message = 'Insufficient permissions') {
+    super(message);
+    this.name = 'ForbiddenError';
+  }
+}

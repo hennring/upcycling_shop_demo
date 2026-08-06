@@ -1,4 +1,7 @@
 import { Route, Routes } from 'react-router-dom';
+import { AdminLayout } from './admin/AdminLayout';
+import { AdminRoute } from './admin/AdminRoute';
+import { DashboardPage } from './admin/DashboardPage';
 import { SiteLayout } from './components/layout/SiteLayout';
 import { CartPage } from './features/cart/CartPage';
 import { LandingPage } from './features/landing/LandingPage';
@@ -8,8 +11,8 @@ import { LoginPage } from './pages/LoginPage';
 import { NotFoundPage } from './pages/NotFoundPage';
 
 // The landing page anchors (#produkte, #werkstatt, #werkstattbuch, #werkstattbrief) stay as
-// they are - they only ever point at sections of "/". Phase 4 adds /admin on top of this,
-// a /werkstattbuch/:slug article page is still open.
+// they are - they only ever point at sections of "/". A /werkstattbuch/:slug article page
+// is still open.
 function App() {
   return (
     <Routes>
@@ -20,6 +23,11 @@ function App() {
         <Route path="cart" element={<CartPage />} />
         <Route path="login" element={<LoginPage />} />
         <Route path="*" element={<NotFoundPage />} />
+      </Route>
+      <Route path="admin" element={<AdminRoute />}>
+        <Route element={<AdminLayout />}>
+          <Route index element={<DashboardPage />} />
+        </Route>
       </Route>
     </Routes>
   );
