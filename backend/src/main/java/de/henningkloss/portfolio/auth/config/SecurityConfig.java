@@ -93,7 +93,8 @@ public class SecurityConfig {
                             // public: login/registration
                             .requestMatchers(HttpMethod.POST, "/api/auth/register", "/api/auth/login").permitAll()
                             // public: news feed and shop catalogue
-                            .requestMatchers(HttpMethod.GET, "/api/blog/**", "/api/products/**").permitAll()
+                            .requestMatchers(HttpMethod.GET, "/api/blog/**", "/api/products/**", "/api/categories/**")
+                            .permitAll()
                             // public: newsletter opt-in and opt-out
                             .requestMatchers(HttpMethod.POST, "/api/newsletter/subscribe", "/api/newsletter/unsubscribe").permitAll()
                             .requestMatchers("/api/admin/**").hasRole("ADMIN")

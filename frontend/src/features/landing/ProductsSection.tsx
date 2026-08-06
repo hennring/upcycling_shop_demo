@@ -1,63 +1,23 @@
 import { Link } from 'react-router-dom';
-import type { ProductCategory } from '../../api/contracts';
+import type { Category } from '../../api/contracts';
+import { useCategories } from '../shop/CategoriesContext';
 import { categorySlug } from '../shop/categories';
+import { formatPrice } from '../shop/money';
 
-/**
- * The five product categories from brand.md, Abschnitt 6. The "Material" line is the
- * recurring Materialzettel motif: every card says what the thing used to be before it
- * says what it costs. The copy stays hard-coded on purpose - it describes the workshop,
- * not the current stock; `key` links each card into the filtered shop.
- */
-const CATEGORIES: {
-  key: ProductCategory;
-  title: string;
-  description: string;
-  material: string;
-  price: string;
-}[] = [
-  {
-    key: 'MOEBEL',
-    title: 'Möbel',
-    description:
-      'Hocker, Regale, Beistelltische, Sitzbänke. Aus Kulissenholz und Restholz vom Tischler, geölt statt lackiert.',
-    material: 'Kulissenholz · Restholz · Bauholz',
-    price: '90 – 380 €',
-  },
-  {
-    key: 'EINRICHTUNG',
-    title: 'Einrichtung',
-    description:
-      'Lampen, Spiegelrahmen, Wandhaken, Körbe, Übertöpfe. Die Dinge, die eine Wohnung erst fertig machen.',
-    material: 'Blech · Emaille · Bühnenholz',
-    price: '25 – 95 €',
-  },
-  {
-    key: 'MODE',
-    title: 'Mode & Taschen',
-    description:
-      'Umhängetaschen, Rucksäcke, Schürzen, Jacken. Bühnenstoff und Segeltuch halten mehr aus als die meisten Neuware.',
-    material: 'Theatervorhang · Segeltuch · Arbeitskleidung',
-    price: '45 – 140 €',
-  },
-  {
-    key: 'SCHMUCK',
-    title: 'Schmuck',
-    description:
-      'Ringe und Ketten aus altem Besteck, Ohrringe aus Platinen und Fahrradspeichen. Getragen, nicht ausgestellt.',
-    material: 'Silberbesteck · Platinen · Speichen',
-    price: '18 – 75 €',
-  },
-  {
-    key: 'KLEINZEUG',
-    title: 'Nützliches Kleinzeug',
-    description:
-      'Schlüsselanhänger, Spanngummis aus Fahrradschlauch, Flaschenöffner, Etuis, Stiftehalter. Kleine Sachen, die man verliert und nachkauft.',
-    material: 'Fahrradschlauch · Kette · Stoffreste',
-    price: '8 – 35 €',
-  },
-];
+/** "90 – 380 €", or a note that nothing in the category is currently for sale. */
+function priceRangeLabel(category: Category): string {
+  if (category.minPrice == null || category.maxPrice == null) {
+    return 'Gerade nichts im Verkauf';
+  }
+  if (category.minPrice === category.maxPrice) {
+    return formatPrice(category.minPrice);
+  }
+  return `${formatPrice(category.minPrice)} – ${formatPrice(category.maxPrice)}`;
+}
 
 export function ProductsSection() {
+  const { categories } = useCategories();
+
   return (
     <section id="produkte" className="scroll-mt-20 bg-stone-50 py-24">
       <div className="mx-auto max-w-6xl px-6">
@@ -71,7 +31,7 @@ export function ProductsSection() {
         </p>
 
         <div className="mt-14 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {CATEGORIES.map((category) => (
+          {categories.map((category) => (
             <article
               key={category.key}
               className="group flex flex-col rounded-2xl border border-stone-200 bg-white p-8 transition-shadow hover:shadow-lg"
@@ -94,7 +54,7 @@ export function ProductsSection() {
                 </div>
                 <div>
                   <dt className="text-xs tracking-wider text-stone-500 uppercase">Preis</dt>
-                  <dd className="mt-1 font-medium text-stone-900">{category.price}</dd>
+                  <dd className="mt-1 font-medium text-stone-900">{priceRangeLabel(category)}</dd>
                 </div>
               </dl>
             </article>

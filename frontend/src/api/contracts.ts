@@ -31,8 +31,22 @@ export interface BlogAdapter {
   listArticles(): Promise<Article[]>;
 }
 
-/** The five categories from brand.md, Abschnitt 6. The backend ships the key, the labels live in the frontend. */
+/** The five categories from brand.md, Abschnitt 6. */
 export type ProductCategory = 'MOEBEL' | 'EINRICHTUNG' | 'MODE' | 'SCHMUCK' | 'KLEINZEUG';
+
+/**
+ * Category metadata and the current price range. The range is computed by the backend
+ * from the active catalogue, not a fixed figure - a category without active products
+ * has null bounds instead of a stale one.
+ */
+export interface Category {
+  key: ProductCategory;
+  title: string;
+  description: string | null;
+  material: string | null;
+  minPrice: number | null;
+  maxPrice: number | null;
+}
 
 /** A product of the public catalogue. Sold-out ("vergriffen") products never leave the backend. */
 export interface Product {
@@ -55,6 +69,8 @@ export interface ShopAdapter {
   listProducts(): Promise<Product[]>;
   /** Throws {@link NotFoundError} for an unknown or sold-out slug. */
   getProduct(slug: string): Promise<Product>;
+  /** The five categories with their brand copy and current price range, in display order. */
+  listCategories(): Promise<Category[]>;
 }
 
 /** One line of the cart. Prices are resolved by the backend, never recomputed here. */

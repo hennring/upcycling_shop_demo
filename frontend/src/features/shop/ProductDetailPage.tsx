@@ -4,13 +4,15 @@ import { AddToCartButton } from '../cart/AddToCartButton';
 import { MaterialTag } from './MaterialTag';
 import { ProductImage } from './ProductImage';
 import { StockLabel } from './StockLabel';
-import { categoryLabel, categorySlug } from './categories';
+import { useCategories } from './CategoriesContext';
+import { categorySlug } from './categories';
 import { formatPrice } from './money';
 import { useProduct } from './useProduct';
 
 export function ProductDetailPage() {
   const { slug = '' } = useParams();
   const { product, status } = useProduct(slug);
+  const { labelFor } = useCategories();
 
   if (status === 'loading') {
     return (
@@ -54,7 +56,7 @@ export function ProductDetailPage() {
           ·
         </span>
         <Link to={`/shop?kategorie=${categorySlug(product.category)}`} className="hover:text-rust">
-          {categoryLabel(product.category)}
+          {labelFor(product.category)}
         </Link>
       </nav>
 

@@ -1,13 +1,16 @@
 import { useSearchParams } from 'react-router-dom';
-import { CATEGORIES, categoryFromSlug, categoryLabel, categorySlug } from './categories';
+import { useCategories } from './CategoriesContext';
 import { ProductCard } from './ProductCard';
+import { categoryFromSlug, categorySlug } from './categories';
 import { useProducts } from './useProducts';
 
 export function ShopPage() {
   const { products, status } = useProducts();
+  const { categories } = useCategories();
   const [searchParams, setSearchParams] = useSearchParams();
   // an unknown ?kategorie= value falls back to "all" instead of showing an empty shop
-  const activeCategory = categoryFromSlug(searchParams.get('kategorie'));
+  const activeCategory = categoryFromSlug(searchParams.get('kategorie'), categories);
+  const activeCategoryTitle = categories.find((entry) => entry.key === activeCategory)?.title;
 
   const visible = activeCategory
     ? products.filter((product) => product.category === activeCategory)
@@ -22,7 +25,7 @@ export function ShopPage() {
     <div className="mx-auto max-w-6xl px-6 py-16">
       <p className="text-sm font-semibold tracking-widest text-rust uppercase">Shop</p>
       <h1 className="mt-3 font-display text-3xl font-semibold text-stone-900 md:text-4xl">
-        {activeCategory ? categoryLabel(activeCategory) : 'Was gerade fertig ist'}
+        {activeCategoryTitle ?? 'Was gerade fertig ist'}
       </h1>
       <p className="mt-4 max-w-2xl text-lg text-stone-600">
         Jedes Stück mit Herkunft und Stückzahl. Ist eine Charge durch, verschwindet der Artikel
@@ -42,7 +45,7 @@ export function ShopPage() {
         >
           Alle
         </button>
-        {CATEGORIES.map(({ key, label }) => (
+        {categories.map(({ key, title }) => (
           <button
             key={key}
             type="button"
@@ -54,7 +57,7 @@ export function ShopPage() {
                 : 'border-stone-300 text-stone-700 hover:border-stone-400'
             }`}
           >
-            {label}
+            {title}
           </button>
         ))}
       </div>

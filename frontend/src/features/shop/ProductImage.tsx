@@ -1,4 +1,4 @@
-import { categoryLabel } from './categories';
+import { useCategories } from './CategoriesContext';
 import type { Product } from '../../api/contracts';
 
 /**
@@ -7,6 +7,8 @@ import type { Product } from '../../api/contracts';
  * with a broken-image icon.
  */
 export function ProductImage({ product, className = '' }: { product: Product; className?: string }) {
+  const { labelFor } = useCategories();
+
   if (product.imageUrl) {
     return (
       <img
@@ -24,7 +26,7 @@ export function ProductImage({ product, className = '' }: { product: Product; cl
       className={`flex items-center justify-center bg-stone-200 bg-[radial-gradient(circle_at_30%_20%,rgba(245,158,11,0.25),transparent_60%)] ${className}`}
     >
       <span className="font-mono text-xs tracking-widest text-stone-500 uppercase">
-        {categoryLabel(product.category)}
+        {labelFor(product.category)}
       </span>
     </div>
   );
