@@ -8,6 +8,8 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': 'http://localhost:8080',
+      // uploaded article images (see backend admin.storage.LocalFileStorageService)
+      '/uploads': 'http://localhost:8080',
     },
   },
 })

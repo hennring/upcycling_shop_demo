@@ -1,6 +1,8 @@
 import { Route, Routes } from 'react-router-dom';
 import { AdminLayout } from './admin/AdminLayout';
 import { AdminRoute } from './admin/AdminRoute';
+import { ArticleEditorPage } from './admin/ArticleEditorPage';
+import { ArticlesPage } from './admin/ArticlesPage';
 import { DashboardPage } from './admin/DashboardPage';
 import { SiteLayout } from './components/layout/SiteLayout';
 import { CartPage } from './features/cart/CartPage';
@@ -27,6 +29,9 @@ function App() {
       <Route path="admin" element={<AdminRoute />}>
         <Route element={<AdminLayout />}>
           <Route index element={<DashboardPage />} />
+          <Route path="articles" element={<ArticlesPage />} />
+          <Route path="articles/new" element={<ArticleEditorPage />} />
+          <Route path="articles/:id" element={<ArticleEditorPage />} />
         </Route>
       </Route>
     </Routes>

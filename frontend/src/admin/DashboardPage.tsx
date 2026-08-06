@@ -20,7 +20,7 @@ export function DashboardPage() {
   const tiles: Tile[] = stats ? [{ label: 'Abonnenten', value: stats.activeSubscriberCount }] : [];
 
   return (
-    <div className="mx-auto max-w-4xl px-6 py-16">
+    <div>
       <h1 className="font-display text-3xl font-semibold text-stone-900">Dashboard</h1>
 
       {status === 'loading' && <p className="mt-8 text-sm text-stone-500">Laden...</p>}

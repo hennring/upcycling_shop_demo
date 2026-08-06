@@ -119,12 +119,41 @@ export interface AdminStats {
   activeSubscriberCount: number;
 }
 
+/** A blog article as seen by the CMS - unlike {@link Article}, drafts are included. */
+export interface AdminArticle {
+  id: number;
+  title: string;
+  slug: string;
+  excerpt: string | null;
+  content: string;
+  imageUrl: string | null;
+  published: boolean;
+  publishedAt: string | null;
+}
+
+/** Payload for creating/updating an article. An empty slug asks the backend to derive one. */
+export interface ArticleInput {
+  title: string;
+  slug: string;
+  excerpt: string;
+  content: string;
+  imageUrl: string;
+  published: boolean;
+}
+
 /**
  * Admin-only calls, separate from the public adapters above. Phase 5 adds blog CRUD and
  * newsletter send-out here.
  */
 export interface AdminAdapter {
   getStats(token: string): Promise<AdminStats>;
+  listArticles(token: string): Promise<AdminArticle[]>;
+  getArticle(token: string, id: number): Promise<AdminArticle>;
+  createArticle(token: string, input: ArticleInput): Promise<AdminArticle>;
+  updateArticle(token: string, id: number, input: ArticleInput): Promise<AdminArticle>;
+  deleteArticle(token: string, id: number): Promise<void>;
+  /** Uploads a header image and returns the URL the backend stored it under. */
+  uploadArticleImage(token: string, file: File): Promise<string>;
 }
 
 export interface BackendAdapter {
