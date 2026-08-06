@@ -1,0 +1,5 @@
+### Lokal hochgeladene Dateien (siehe backend/application-local.properties) ###
+# Landet hier statt unter backend/, wenn die IDE-Run-Config das Projekt-Root als
+# Working Directory verwendet statt des backend-Moduls.
+.local-uploads/
+/uploads/
