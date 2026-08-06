@@ -1,9 +1,10 @@
-package de.henningkloss.portfolio.newsletter.controller;
+package de.henningkloss.portfolio.admin.newsletter;
 
 import de.henningkloss.portfolio.newsletter.SubscriberService;
 import de.henningkloss.portfolio.newsletter.dto.SubscriberResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -14,12 +15,14 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 /**
- * CRM endpoints. Protected by the {@code /api/admin/**} rule in SecurityConfig.
- * The newsletter editor and send-out follow in phase 5.
+ * CRM endpoints. Protected by the {@code /api/admin/**} rule in SecurityConfig
+ * and, in addition, method security here. The newsletter editor and send-out
+ * follow in phase 5.
  */
 @RestController
 @RequestMapping("/api/admin/newsletter/subscribers")
 @RequiredArgsConstructor
+@PreAuthorize("hasRole('ADMIN')")
 public class AdminSubscriberController {
 
     private final SubscriberService subscriberService;

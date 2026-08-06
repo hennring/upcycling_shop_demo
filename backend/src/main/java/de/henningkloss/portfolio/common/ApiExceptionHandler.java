@@ -1,5 +1,6 @@
 package de.henningkloss.portfolio.common;
 
+import de.henningkloss.portfolio.admin.storage.UnsupportedFileTypeException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.security.core.AuthenticationException;
@@ -25,6 +26,11 @@ public class ApiExceptionHandler {
     @ExceptionHandler(ConflictException.class)
     public ProblemDetail handleConflict(ConflictException ex) {
         return ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, ex.getMessage());
+    }
+
+    @ExceptionHandler(UnsupportedFileTypeException.class)
+    public ProblemDetail handleUnsupportedFileType(UnsupportedFileTypeException ex) {
+        return ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
     }
 
     /**

@@ -14,6 +14,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
@@ -31,6 +32,7 @@ import java.util.List;
 
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
 
@@ -95,6 +97,8 @@ public class SecurityConfig {
                             // public: news feed and shop catalogue
                             .requestMatchers(HttpMethod.GET, "/api/blog/**", "/api/products/**", "/api/categories/**")
                             .permitAll()
+                            // public: uploaded article images, shown on the public blog
+                            .requestMatchers(HttpMethod.GET, "/uploads/**").permitAll()
                             // public: newsletter opt-in and opt-out
                             .requestMatchers(HttpMethod.POST, "/api/newsletter/subscribe", "/api/newsletter/unsubscribe").permitAll()
                             .requestMatchers("/api/admin/**").hasRole("ADMIN")

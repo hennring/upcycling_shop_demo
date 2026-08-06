@@ -38,6 +38,9 @@ services:
     # exposed only so smoke tests can hit the API directly; the browser goes through nginx
     ports:
       - "8081:8080"
+    volumes:
+      # uploaded article images (see admin.storage.LocalFileStorageService); survives restarts
+      - uploads-data:/app/uploads
     depends_on:
       db:
         condition: service_healthy
@@ -58,3 +61,4 @@ services:
 
 volumes:
   db-data:
+  uploads-data:
