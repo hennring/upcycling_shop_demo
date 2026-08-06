@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { BrandMark } from './BrandMark';
 
 const NAV = [
+  { href: '/shop', label: 'Shop' },
   { href: '/#produkte', label: 'Produkte' },
   { href: '/#werkstatt', label: 'Werkstatt' },
   { href: '/#ueber-uns', label: 'Über uns' },

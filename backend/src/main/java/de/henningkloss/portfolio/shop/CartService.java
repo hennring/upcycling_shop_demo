@@ -28,6 +28,8 @@ public class CartService {
 
     /**
      * Adds a product to the cart, or increases the quantity if it is already in there.
+     * A product without stock is rejected; more than the available pieces is capped, so
+     * the returned cart always says what is actually reserved.
      */
     @Transactional
     public CartResponse addItem(Long userId, CartItemRequest request) {
@@ -35,13 +37,17 @@ public class CartService {
                 .filter(Product::isActive)
                 .orElseThrow(() -> new ProductNotFoundException(request.productId()));
 
+        if (product.getStock() <= 0) {
+            throw new OutOfStockException(product.getName());
+        }
+
         cartItemRepository.findByUserIdAndProductId(userId, product.getId())
                 .ifPresentOrElse(
-                        item -> item.setQuantity(cappedQuantity(item.getQuantity() + request.quantity())),
+                        item -> item.setQuantity(cappedQuantity(item.getQuantity() + request.quantity(), product)),
                         () -> cartItemRepository.save(CartItem.builder()
                                 .user(userRepository.getReferenceById(userId))
                                 .product(product)
-                                .quantity(cappedQuantity(request.quantity()))
+                                .quantity(cappedQuantity(request.quantity(), product))
                                 .build())
                 );
 
@@ -53,10 +59,11 @@ public class CartService {
         CartItem item = cartItemRepository.findByUserIdAndProductId(userId, productId)
                 .orElseThrow(() -> new ProductNotFoundException(productId));
 
-        if (quantity <= 0) {
+        // a product that went out of stock while it sat in the cart drops out of it
+        if (quantity <= 0 || item.getProduct().getStock() <= 0) {
             cartItemRepository.delete(item);
         } else {
-            item.setQuantity(cappedQuantity(quantity));
+            item.setQuantity(cappedQuantity(quantity, item.getProduct()));
         }
 
         return getCartAfterFlush(userId);
@@ -80,8 +87,9 @@ public class CartService {
         return toResponse(cartItemRepository.findByUserIdOrderByCreatedAtAsc(userId));
     }
 
-    private int cappedQuantity(int quantity) {
-        return Math.min(quantity, MAX_QUANTITY_PER_PRODUCT);
+    /** Never more than the batch holds, and never more than the technical line limit. */
+    private int cappedQuantity(int quantity, Product product) {
+        return Math.min(quantity, Math.min(product.getStock(), MAX_QUANTITY_PER_PRODUCT));
     }
 
     private CartResponse toResponse(List<CartItem> items) {
@@ -108,6 +116,7 @@ public class CartService {
                 product.getImageUrl(),
                 product.getPrice(),
                 item.getQuantity(),
+                product.getStock(),
                 product.getPrice().multiply(BigDecimal.valueOf(item.getQuantity()))
         );
     }

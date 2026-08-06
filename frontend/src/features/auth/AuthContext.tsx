@@ -1,4 +1,11 @@
-import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useState,
+  type ReactNode,
+} from 'react';
 import { api } from '../../api';
 import type { User } from '../../api/contracts';
 
@@ -35,17 +42,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .finally(() => setLoading(false));
   }, []);
 
-  function login(authenticatedUser: User, authToken: string) {
+  // stable identities: consumers (e.g. the cart) use these as effect dependencies, and a
+  // fresh function on every render would restart those effects in a loop
+  const login = useCallback((authenticatedUser: User, authToken: string) => {
     localStorage.setItem('token', authToken);
     setUser(authenticatedUser);
     setToken(authToken);
-  }
+  }, []);
 
-  function logout() {
+  const logout = useCallback(() => {
     localStorage.removeItem('token');
     setUser(null);
     setToken(null);
-  }
+  }, []);
 
   return (
     <AuthContext.Provider value={{ user, token, loading, login, logout }}>

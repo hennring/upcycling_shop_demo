@@ -22,7 +22,10 @@ public class ProductService {
                 .name(request.name())
                 .slug(resolveSlug(request.slug(), request.name(), null))
                 .description(request.description())
+                .category(request.category())
+                .material(request.material())
                 .price(request.price())
+                .stock(request.stock())
                 .imageUrl(request.imageUrl())
                 .active(request.active())
                 .build();
@@ -38,7 +41,10 @@ public class ProductService {
         product.setName(request.name());
         product.setSlug(resolveSlug(request.slug(), request.name(), id));
         product.setDescription(request.description());
+        product.setCategory(request.category());
+        product.setMaterial(request.material());
         product.setPrice(request.price());
+        product.setStock(request.stock());
         product.setImageUrl(request.imageUrl());
         product.setActive(request.active());
 
@@ -90,7 +96,10 @@ public class ProductService {
                 product.getName(),
                 product.getSlug(),
                 product.getDescription(),
+                product.getCategory(),
+                product.getMaterial(),
                 product.getPrice(),
+                product.getStock(),
                 product.getImageUrl(),
                 product.isActive()
         );

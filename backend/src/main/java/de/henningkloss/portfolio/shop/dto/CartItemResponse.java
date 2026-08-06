@@ -9,6 +9,8 @@ public record CartItemResponse(
         String imageUrl,
         BigDecimal unitPrice,
         int quantity,
+        /** Pieces the batch still holds, so the client can cap its quantity control. */
+        int availableStock,
         BigDecimal lineTotal
 ) {
 }

@@ -1,5 +1,6 @@
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../features/auth/AuthContext';
+import { useCart } from '../../features/cart/CartContext';
 import { BrandMark } from './BrandMark';
 
 /**
@@ -13,6 +14,26 @@ const SECTIONS = [
   { id: 'werkstattbuch', label: 'Werkstattbuch' },
 ];
 
+/** Number of pieces in the cart; empty carts and anonymous visitors show no badge. */
+function CartLink() {
+  const { cart } = useCart();
+  const count = cart?.itemCount ?? 0;
+
+  return (
+    <Link
+      to="/cart"
+      className="relative rounded-lg border border-stone-300 px-4 py-2 text-sm font-medium text-stone-700 transition-colors hover:border-stone-400"
+    >
+      Warenkorb
+      {count > 0 && (
+        <span className="ml-2 inline-flex min-w-5 items-center justify-center rounded-full bg-rust px-1.5 font-mono text-xs text-white">
+          {count}
+        </span>
+      )}
+    </Link>
+  );
+}
+
 export function SiteHeader() {
   const { user, logout } = useAuth();
   const { pathname } = useLocation();
@@ -25,6 +46,15 @@ export function SiteHeader() {
         </Link>
 
         <nav className="hidden items-center gap-8 lg:flex">
+          {/* a real route, unlike the section anchors next to it */}
+          <Link
+            to="/shop"
+            className={`text-sm font-medium transition-colors hover:text-rust ${
+              pathname.startsWith('/shop') ? 'text-rust' : 'text-stone-600'
+            }`}
+          >
+            Shop
+          </Link>
           {SECTIONS.map((section) => (
             <a
               key={section.id}
@@ -38,7 +68,8 @@ export function SiteHeader() {
 
         {user ? (
           <div className="flex items-center gap-4">
-            <span className="hidden text-sm text-stone-500 sm:inline">{user.email}</span>
+            <span className="hidden text-sm text-stone-500 xl:inline">{user.email}</span>
+            <CartLink />
             <button
               type="button"
               onClick={logout}
