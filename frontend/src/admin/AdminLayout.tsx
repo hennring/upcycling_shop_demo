@@ -5,6 +5,7 @@ import { useAuth } from '../features/auth/AuthContext';
 const SECTIONS = [
   { to: '/admin', label: 'Dashboard' },
   { to: '/admin/articles', label: 'Artikel' },
+  { to: '/admin/newsletter', label: 'Newsletter' },
 ];
 
 /**

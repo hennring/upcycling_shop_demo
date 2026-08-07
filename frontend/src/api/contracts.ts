@@ -143,6 +143,31 @@ export interface BlogArticleInput {
   published: boolean;
 }
 
+/** A draft is 'DRAFT'; it becomes 'SENT' once the (not yet built) send-out feature dispatches it. */
+export type NewsletterStatus = 'DRAFT' | 'SENT';
+
+/** A newsletter as seen by the CMS. */
+export interface AdminNewsletter {
+  id: number;
+  subject: string;
+  content: string;
+  status: NewsletterStatus;
+  /** The attached article, if any - the recipient is directed there from the newsletter mail. */
+  blogArticleId: number | null;
+  blogArticleTitle: string | null;
+  blogArticleSlug: string | null;
+  createdAt: string;
+  updatedAt: string;
+  sentAt: string | null;
+}
+
+/** Payload for creating/updating a newsletter. */
+export interface NewsletterInput {
+  subject: string;
+  content: string;
+  blogArticleId: number | null;
+}
+
 /**
  * Admin-only calls, separate from the public adapters above. Phase 5 adds blog CRUD and
  * newsletter send-out here.
@@ -156,6 +181,11 @@ export interface AdminAdapter {
   deleteArticle(token: string, id: number): Promise<void>;
   /** Uploads a header image and returns the URL the backend stored it under. */
   uploadArticleImage(token: string, file: File): Promise<string>;
+  listNewsletters(token: string): Promise<AdminNewsletter[]>;
+  getNewsletter(token: string, id: number): Promise<AdminNewsletter>;
+  createNewsletter(token: string, input: NewsletterInput): Promise<AdminNewsletter>;
+  updateNewsletter(token: string, id: number, input: NewsletterInput): Promise<AdminNewsletter>;
+  deleteNewsletter(token: string, id: number): Promise<void>;
 }
 
 export interface BackendAdapter {

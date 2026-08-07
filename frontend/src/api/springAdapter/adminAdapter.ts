@@ -1,4 +1,12 @@
-import type { AdminAdapter, AdminBlogArticle, AdminStats, BlogArticleInput } from '../contracts';
+import type {
+  AdminAdapter,
+  AdminBlogArticle,
+  AdminNewsletter,
+  AdminStats,
+  BlogArticleInput,
+  NewsletterInput,
+  NewsletterStatus,
+} from '../contracts';
 import { ForbiddenError, UnauthorizedError } from '../errors';
 
 /** The backend also returns createdAt/updatedAt; the admin UI has no use for them yet. */
@@ -15,6 +23,19 @@ interface BlogArticleAdminResponseDto {
 
 interface ImageUploadResponseDto {
   imageUrl: string;
+}
+
+interface NewsletterAdminResponseDto {
+  id: number;
+  subject: string;
+  content: string;
+  status: NewsletterStatus;
+  blogArticleId: number | null;
+  blogArticleTitle: string | null;
+  blogArticleSlug: string | null;
+  createdAt: string;
+  updatedAt: string;
+  sentAt: string | null;
 }
 
 async function request(token: string, path: string, init: RequestInit = {}): Promise<Response> {
@@ -98,6 +119,54 @@ async function uploadArticleImage(token: string, file: File): Promise<string> {
   return dto.imageUrl;
 }
 
+function toAdminNewsletter(dto: NewsletterAdminResponseDto): AdminNewsletter {
+  return {
+    id: dto.id,
+    subject: dto.subject,
+    content: dto.content,
+    status: dto.status,
+    blogArticleId: dto.blogArticleId,
+    blogArticleTitle: dto.blogArticleTitle,
+    blogArticleSlug: dto.blogArticleSlug,
+    createdAt: dto.createdAt,
+    updatedAt: dto.updatedAt,
+    sentAt: dto.sentAt,
+  };
+}
+
+async function listNewsletters(token: string): Promise<AdminNewsletter[]> {
+  const res = await request(token, '/newsletter/campaigns');
+  const dtos: NewsletterAdminResponseDto[] = await res.json();
+  return dtos.map(toAdminNewsletter);
+}
+
+async function getNewsletter(token: string, id: number): Promise<AdminNewsletter> {
+  const res = await request(token, `/newsletter/campaigns/${id}`);
+  return toAdminNewsletter(await res.json());
+}
+
+async function createNewsletter(token: string, input: NewsletterInput): Promise<AdminNewsletter> {
+  const res = await request(token, '/newsletter/campaigns', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(input),
+  });
+  return toAdminNewsletter(await res.json());
+}
+
+async function updateNewsletter(token: string, id: number, input: NewsletterInput): Promise<AdminNewsletter> {
+  const res = await request(token, `/newsletter/campaigns/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(input),
+  });
+  return toAdminNewsletter(await res.json());
+}
+
+async function deleteNewsletter(token: string, id: number): Promise<void> {
+  await request(token, `/newsletter/campaigns/${id}`, { method: 'DELETE' });
+}
+
 export const springAdminAdapter: AdminAdapter = {
   getStats,
   listArticles,
@@ -106,4 +175,9 @@ export const springAdminAdapter: AdminAdapter = {
   updateArticle,
   deleteArticle,
   uploadArticleImage,
+  listNewsletters,
+  getNewsletter,
+  createNewsletter,
+  updateNewsletter,
+  deleteNewsletter,
 };
