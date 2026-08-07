@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
 import java.util.List;
 
 @Service
@@ -18,6 +19,8 @@ public class NewsletterService {
 
     private final NewsletterRepository newsletterRepository;
     private final BlogArticleRepository blogArticleRepository;
+    private final SubscriberService subscriberService;
+    private final NewsletterMailService newsletterMailService;
 
     @Transactional
     public NewsletterResponse create(NewsletterRequest request) {
@@ -48,6 +51,24 @@ public class NewsletterService {
             throw new NewsletterNotFoundException(id);
         }
         newsletterRepository.deleteById(id);
+    }
+
+    /** Sends the newsletter to every active subscriber, then marks it as sent - see NewsletterMailService for the best-effort delivery. */
+    @Transactional
+    public NewsletterResponse send(Long id) {
+        Newsletter newsletter = newsletterRepository.findById(id)
+                .orElseThrow(() -> new NewsletterNotFoundException(id));
+
+        if (newsletter.getStatus() == NewsletterStatus.SENT) {
+            throw new NewsletterAlreadySentException(id);
+        }
+
+        newsletterMailService.send(newsletter, subscriberService.getActiveEmails());
+
+        newsletter.setStatus(NewsletterStatus.SENT);
+        newsletter.setSentAt(Instant.now());
+
+        return toResponse(newsletter);
     }
 
     public NewsletterResponse getById(Long id) {

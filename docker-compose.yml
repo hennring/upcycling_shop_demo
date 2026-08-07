@@ -22,6 +22,13 @@ services:
     volumes:
       - db-data:/var/lib/postgresql/data
 
+  # Catches newsletter mail locally instead of sending it - see architektur-entscheidungen.md.
+  # Web UI at http://localhost:8025 to inspect what NewsletterMailService sent.
+  mailhog:
+    image: mailhog/mailhog:v1.0.1
+    ports:
+      - "8025:8025"
+
   backend:
     build: ./backend
     environment:
@@ -35,6 +42,9 @@ services:
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:-admin-local-password}
       # demo news articles for the landing page; only seeded while blog_article is empty
       FIXTURES_ENABLED: ${FIXTURES_ENABLED:-true}
+      MAIL_HOST: mailhog
+      MAIL_PORT: 1025
+      MAIL_FROM: newsletter@example.com
     # exposed only so smoke tests can hit the API directly; the browser goes through nginx
     ports:
       - "8081:8080"
@@ -44,6 +54,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      mailhog:
+        condition: service_started
     healthcheck:
       # the runtime image is a plain JRE without curl, so check the open port instead
       test: ["CMD-SHELL", "bash -c '</dev/tcp/127.0.0.1/8080'"]

@@ -16,7 +16,7 @@ Projektkontext und funktionale Anforderungen: siehe `anforderungen.md`. Zeitplan
 | Ingress/TLS | Traefik (in k3s enthalten) + cert-manager + Let's Encrypt | kostenloses, automatisch erneuertes TLS |
 | Registry | GitHub Container Registry (GHCR) | kostenlos |
 | CI/CD | GitHub Actions → Build & Push Images → Deploy auf k3s | Automatisierung, GitOps-fähig |
-| E-Mail/Newsletter | Brevo API (Free: 300 E-Mails/Tag, unbegrenzte gespeicherte Kontakte) | deckt CRM-Grundfunktion + Versand ab |
+| E-Mail/Newsletter | Brevo SMTP-Relay (Free: 300 E-Mails/Tag, unbegrenzte gespeicherte Kontakte), lokal MailHog | Versand über `spring-boot-starter-mail`/`JavaMailSender` – Backend-Code bleibt identisch, nur Host/Port/Credentials unterscheiden sich zwischen lokal und produktiv |
 | DNS | Cloudflare (Free) | Domain zeigt auf VM-IP, DDoS-Schutz gratis inklusive |
 | Domain | separat zu registrieren | einzige geplante Kostenposition (~10–15 €/Jahr) |
 
@@ -61,5 +61,5 @@ frontend/src/api/
 - **Registry:** Push nach GitHub Container Registry (GHCR), getaggt mit Git-SHA und `latest`
 - **CD:** GitHub Actions verbindet sich per SSH/kubeconfig auf die k3s-VM und wendet Manifeste aus `/infra/k8s` an (`kubectl apply` bzw. später `kubectl rollout restart` für neue Images)
 - **Manifeste:** Deployment + Service pro Komponente (Backend, Frontend, Postgres als StatefulSet, MinIO), Ingress-Ressource für Traefik mit TLS über cert-manager/Let's Encrypt
-- **Secrets:** DB-Zugangsdaten, JWT-Secret, MinIO-Keys als Kubernetes-Secrets, nicht im Repo
+- **Secrets:** DB-Zugangsdaten, JWT-Secret, MinIO-Keys, Brevo-SMTP-Zugangsdaten (Login + SMTP-Key, nicht der REST-API-Key) als Kubernetes-Secrets, nicht im Repo
 - **Ausbaustufe (später, Phase 6):** Wechsel auf GitOps (ArgoCD) statt direktem `kubectl apply` aus der Pipeline

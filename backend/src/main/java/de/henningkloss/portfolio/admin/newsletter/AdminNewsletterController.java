@@ -20,9 +20,8 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 /**
- * Newsletter composition. Protected by the {@code /api/admin/**} rule in
- * SecurityConfig and, in addition, method security here. Send-out follows
- * once this editor is confirmed working.
+ * Newsletter composition and send-out. Protected by the {@code /api/admin/**} rule in
+ * SecurityConfig and, in addition, method security here.
  */
 @RestController
 @RequestMapping("/api/admin/newsletter/campaigns")
@@ -57,5 +56,10 @@ public class AdminNewsletterController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(@PathVariable Long id) {
         newsletterService.delete(id);
+    }
+
+    @PostMapping("/{id}/send")
+    public NewsletterResponse send(@PathVariable Long id) {
+        return newsletterService.send(id);
     }
 }

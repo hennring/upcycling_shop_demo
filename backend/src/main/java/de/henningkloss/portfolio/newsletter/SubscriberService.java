@@ -76,6 +76,13 @@ public class SubscriberService {
         return subscriberRepository.countByActiveTrue();
     }
 
+    /** Recipient list for a newsletter send-out; unsubscribed addresses never receive mail. */
+    public List<String> getActiveEmails() {
+        return subscriberRepository.findAllByActiveTrue().stream()
+                .map(Subscriber::getEmail)
+                .toList();
+    }
+
     private String normalizeEmail(String email) {
         return email.trim().toLowerCase(Locale.ROOT);
     }

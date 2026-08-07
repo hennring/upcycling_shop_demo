@@ -34,12 +34,22 @@ function TrashIcon() {
   );
 }
 
+function SendIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="h-5 w-5">
+      <path strokeLinecap="round" strokeLinejoin="round" d="m3 3 18 9-18 9 4.5-9L3 3Z" />
+    </svg>
+  );
+}
+
 function NewsletterRow({
   newsletter,
   onDelete,
+  onSend,
 }: {
   newsletter: AdminNewsletter;
   onDelete: (id: number) => void;
+  onSend: (id: number) => void;
 }) {
   return (
     <tr className="border-b border-stone-200">
@@ -56,11 +66,22 @@ function NewsletterRow({
       <td className="py-3 pr-4 text-stone-500">{newsletter.blogArticleTitle ?? '-'}</td>
       <td className="py-3 pr-4 text-stone-500">{formatDate(newsletter.createdAt)}</td>
       <td className="py-3 text-right">
+        {newsletter.status === 'DRAFT' && (
+          <button
+            type="button"
+            onClick={() => onSend(newsletter.id)}
+            title="Senden"
+            aria-label="Senden"
+            className="inline-flex text-rust transition-colors hover:text-rust-dark"
+          >
+            <SendIcon />
+          </button>
+        )}
         <Link
           to={`/admin/newsletter/${newsletter.id}`}
           title="Bearbeiten"
           aria-label="Bearbeiten"
-          className="inline-flex text-blue-600 transition-colors hover:text-blue-800"
+          className="ml-4 inline-flex text-blue-600 transition-colors hover:text-blue-800"
         >
           <PencilIcon />
         </Link>
@@ -90,6 +111,16 @@ export function NewslettersPage() {
       .deleteNewsletter(token, id)
       .then(reload)
       .catch(() => window.alert('Löschen fehlgeschlagen. Bitte erneut versuchen.'));
+  }
+
+  function handleSend(id: number) {
+    if (!token) return;
+    if (!window.confirm('Diesen Newsletter wirklich an alle Abonnenten senden?')) return;
+
+    api.admin
+      .sendNewsletter(token, id)
+      .then(reload)
+      .catch(() => window.alert('Senden fehlgeschlagen. Bitte erneut versuchen.'));
   }
 
   return (
@@ -129,7 +160,7 @@ export function NewslettersPage() {
           </thead>
           <tbody>
             {newsletters.map((newsletter) => (
-              <NewsletterRow key={newsletter.id} newsletter={newsletter} onDelete={handleDelete} />
+              <NewsletterRow key={newsletter.id} newsletter={newsletter} onDelete={handleDelete} onSend={handleSend} />
             ))}
           </tbody>
         </table>

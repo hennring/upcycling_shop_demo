@@ -16,4 +16,6 @@ public interface SubscriberRepository extends JpaRepository<Subscriber, Long> {
     List<Subscriber> findAllByOrderBySubscribedAtDesc();
 
     long countByActiveTrue();
+
+    List<Subscriber> findAllByActiveTrue();
 }

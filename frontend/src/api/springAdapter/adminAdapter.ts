@@ -167,6 +167,11 @@ async function deleteNewsletter(token: string, id: number): Promise<void> {
   await request(token, `/newsletter/campaigns/${id}`, { method: 'DELETE' });
 }
 
+async function sendNewsletter(token: string, id: number): Promise<AdminNewsletter> {
+  const res = await request(token, `/newsletter/campaigns/${id}/send`, { method: 'POST' });
+  return toAdminNewsletter(await res.json());
+}
+
 export const springAdminAdapter: AdminAdapter = {
   getStats,
   listArticles,
@@ -180,4 +185,5 @@ export const springAdminAdapter: AdminAdapter = {
   createNewsletter,
   updateNewsletter,
   deleteNewsletter,
+  sendNewsletter,
 };
