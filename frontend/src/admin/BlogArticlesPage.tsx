@@ -1,8 +1,8 @@
 import { Link } from 'react-router-dom';
 import { api } from '../api';
-import type { AdminArticle } from '../api/contracts';
+import type { AdminBlogArticle } from '../api/contracts';
 import { useAuth } from '../features/auth/AuthContext';
-import { useAdminArticles } from './useAdminArticles';
+import { useAdminBlogArticles } from './useAdminBlogArticles';
 
 function formatDate(iso: string | null): string {
   if (!iso) return '-';
@@ -34,7 +34,13 @@ function TrashIcon() {
   );
 }
 
-function ArticleRow({ article, onDelete }: { article: AdminArticle; onDelete: (id: number) => void }) {
+function BlogArticleRow({
+  article,
+  onDelete,
+}: {
+  article: AdminBlogArticle;
+  onDelete: (id: number) => void;
+}) {
   return (
     <tr className="border-b border-stone-200">
       <td className="py-3 pr-4 font-medium text-stone-900">{article.title}</td>
@@ -72,9 +78,9 @@ function ArticleRow({ article, onDelete }: { article: AdminArticle; onDelete: (i
   );
 }
 
-export function ArticlesPage() {
+export function BlogArticlesPage() {
   const { token } = useAuth();
-  const { articles, status, reload } = useAdminArticles();
+  const { articles, status, reload } = useAdminBlogArticles();
 
   function handleDelete(id: number) {
     if (!token) return;
@@ -123,7 +129,7 @@ export function ArticlesPage() {
           </thead>
           <tbody>
             {articles.map((article) => (
-              <ArticleRow key={article.id} article={article} onDelete={handleDelete} />
+              <BlogArticleRow key={article.id} article={article} onDelete={handleDelete} />
             ))}
           </tbody>
         </table>

@@ -2,7 +2,7 @@ import { HeroSection } from './HeroSection';
 import { ProductsSection } from './ProductsSection';
 import { ProcessSection } from './ProcessSection';
 import { AboutSection } from './AboutSection';
-import { NewsSection } from './NewsSection';
+import { BlogArticleSection } from './BlogArticleSection';
 import { MaterialSection } from './MaterialSection';
 import { NewsletterSection } from '../newsletter/NewsletterSection';
 
@@ -13,7 +13,7 @@ export function LandingPage() {
       <ProductsSection />
       <ProcessSection />
       <AboutSection />
-      <NewsSection />
+      <BlogArticleSection />
       <NewsletterSection />
       <MaterialSection />
     </>

@@ -1,5 +1,6 @@
-import type { Article } from '../../api/contracts';
-import { useArticles } from '../blog/useArticles';
+import { Link } from 'react-router-dom';
+import type { BlogArticle } from '../../api/contracts';
+import { useBlogArticles } from '../blog/useBlogArticles';
 
 const DATE_FORMAT = new Intl.DateTimeFormat('de-DE', {
   day: '2-digit',
@@ -15,32 +16,36 @@ function formatDate(isoDate: string | null): string | null {
   return Number.isNaN(parsed.getTime()) ? null : DATE_FORMAT.format(parsed);
 }
 
-function ArticleCard({ article }: { article: Article }) {
+function BlogArticleCard({ article }: { article: BlogArticle }) {
   const publishedAt = formatDate(article.publishedAt);
 
   return (
-    <article className="flex flex-col rounded-2xl border border-stone-200 bg-white p-8 transition-shadow hover:shadow-lg">
-      {publishedAt && (
-        <time
-          dateTime={article.publishedAt ?? undefined}
-          className="font-mono text-xs tracking-wide text-stone-500 uppercase"
-        >
-          {publishedAt}
-        </time>
-      )}
-      <h3 className="mt-3 font-display text-xl leading-snug font-semibold text-stone-900">
-        {article.title}
-      </h3>
-      {article.excerpt && (
-        <p className="mt-4 flex-1 leading-relaxed text-stone-600">{article.excerpt}</p>
-      )}
-      {/* TODO: link to /news/:slug once the article detail page exists */}
-    </article>
+    <Link
+      to={`/werkstattbuch/${article.slug}`}
+      className="flex flex-col rounded-2xl border border-stone-200 bg-white p-8 transition-shadow hover:shadow-lg"
+    >
+      <article className="flex flex-1 flex-col">
+        {publishedAt && (
+          <time
+            dateTime={article.publishedAt ?? undefined}
+            className="font-mono text-xs tracking-wide text-stone-500 uppercase"
+          >
+            {publishedAt}
+          </time>
+        )}
+        <h3 className="mt-3 font-display text-xl leading-snug font-semibold text-stone-900">
+          {article.title}
+        </h3>
+        {article.excerpt && (
+          <p className="mt-4 flex-1 leading-relaxed text-stone-600">{article.excerpt}</p>
+        )}
+      </article>
+    </Link>
   );
 }
 
-export function NewsSection() {
-  const { articles, status } = useArticles();
+export function BlogArticleSection() {
+  const { articles, status } = useBlogArticles();
   // the landing page only teases the feed; the full archive gets its own page later
   const latest = articles.slice(0, 3);
 
@@ -80,7 +85,7 @@ export function NewsSection() {
           {status === 'ready' && latest.length > 0 && (
             <div className="grid gap-6 md:grid-cols-3">
               {latest.map((article) => (
-                <ArticleCard key={article.id} article={article} />
+                <BlogArticleCard key={article.id} article={article} />
               ))}
             </div>
           )}

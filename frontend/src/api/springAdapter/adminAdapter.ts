@@ -1,4 +1,4 @@
-import type { AdminAdapter, AdminArticle, AdminStats, ArticleInput } from '../contracts';
+import type { AdminAdapter, AdminBlogArticle, AdminStats, BlogArticleInput } from '../contracts';
 import { ForbiddenError, UnauthorizedError } from '../errors';
 
 /** The backend also returns createdAt/updatedAt; the admin UI has no use for them yet. */
@@ -37,7 +37,7 @@ async function request(token: string, path: string, init: RequestInit = {}): Pro
   return res;
 }
 
-function toAdminArticle(dto: BlogArticleAdminResponseDto): AdminArticle {
+function toAdminArticle(dto: BlogArticleAdminResponseDto): AdminBlogArticle {
   return {
     id: dto.id,
     title: dto.title,
@@ -56,18 +56,18 @@ async function getStats(token: string): Promise<AdminStats> {
   return { activeSubscriberCount };
 }
 
-async function listArticles(token: string): Promise<AdminArticle[]> {
+async function listArticles(token: string): Promise<AdminBlogArticle[]> {
   const res = await request(token, '/blog');
   const dtos: BlogArticleAdminResponseDto[] = await res.json();
   return dtos.map(toAdminArticle);
 }
 
-async function getArticle(token: string, id: number): Promise<AdminArticle> {
+async function getArticle(token: string, id: number): Promise<AdminBlogArticle> {
   const res = await request(token, `/blog/${id}`);
   return toAdminArticle(await res.json());
 }
 
-async function createArticle(token: string, input: ArticleInput): Promise<AdminArticle> {
+async function createArticle(token: string, input: BlogArticleInput): Promise<AdminBlogArticle> {
   const res = await request(token, '/blog', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -76,7 +76,7 @@ async function createArticle(token: string, input: ArticleInput): Promise<AdminA
   return toAdminArticle(await res.json());
 }
 
-async function updateArticle(token: string, id: number, input: ArticleInput): Promise<AdminArticle> {
+async function updateArticle(token: string, id: number, input: BlogArticleInput): Promise<AdminBlogArticle> {
   const res = await request(token, `/blog/${id}`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },

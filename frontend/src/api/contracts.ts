@@ -14,8 +14,8 @@ export interface AuthAdapter {
   me(token: string): Promise<User>;
 }
 
-/** A published news article. Drafts never leave the backend. */
-export interface Article {
+/** A published blog article. Drafts never leave the backend. */
+export interface BlogArticle {
   id: number;
   title: string;
   slug: string;
@@ -28,7 +28,9 @@ export interface Article {
 
 export interface BlogAdapter {
   /** Published articles, newest first. */
-  listArticles(): Promise<Article[]>;
+  listArticles(): Promise<BlogArticle[]>;
+  /** Throws {@link NotFoundError} for an unknown or unpublished slug. */
+  getArticle(slug: string): Promise<BlogArticle>;
 }
 
 /** The five categories from brand.md, Abschnitt 6. */
@@ -119,8 +121,8 @@ export interface AdminStats {
   activeSubscriberCount: number;
 }
 
-/** A blog article as seen by the CMS - unlike {@link Article}, drafts are included. */
-export interface AdminArticle {
+/** A blog article as seen by the CMS - unlike {@link BlogArticle}, drafts are included. */
+export interface AdminBlogArticle {
   id: number;
   title: string;
   slug: string;
@@ -132,7 +134,7 @@ export interface AdminArticle {
 }
 
 /** Payload for creating/updating an article. An empty slug asks the backend to derive one. */
-export interface ArticleInput {
+export interface BlogArticleInput {
   title: string;
   slug: string;
   excerpt: string;
@@ -147,10 +149,10 @@ export interface ArticleInput {
  */
 export interface AdminAdapter {
   getStats(token: string): Promise<AdminStats>;
-  listArticles(token: string): Promise<AdminArticle[]>;
-  getArticle(token: string, id: number): Promise<AdminArticle>;
-  createArticle(token: string, input: ArticleInput): Promise<AdminArticle>;
-  updateArticle(token: string, id: number, input: ArticleInput): Promise<AdminArticle>;
+  listArticles(token: string): Promise<AdminBlogArticle[]>;
+  getArticle(token: string, id: number): Promise<AdminBlogArticle>;
+  createArticle(token: string, input: BlogArticleInput): Promise<AdminBlogArticle>;
+  updateArticle(token: string, id: number, input: BlogArticleInput): Promise<AdminBlogArticle>;
   deleteArticle(token: string, id: number): Promise<void>;
   /** Uploads a header image and returns the URL the backend stored it under. */
   uploadArticleImage(token: string, file: File): Promise<string>;

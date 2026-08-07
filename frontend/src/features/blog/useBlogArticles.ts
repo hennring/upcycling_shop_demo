@@ -1,15 +1,15 @@
 import { useEffect, useState } from 'react';
 import { api } from '../../api';
-import type { Article } from '../../api/contracts';
+import type { BlogArticle } from '../../api/contracts';
 
-interface ArticlesState {
-  articles: Article[];
+interface BlogArticlesState {
+  articles: BlogArticle[];
   status: 'loading' | 'ready' | 'error';
 }
 
 /** Loads the public news feed once. Backend-agnostic: it only talks to the adapter. */
-export function useArticles(): ArticlesState {
-  const [state, setState] = useState<ArticlesState>({ articles: [], status: 'loading' });
+export function useBlogArticles(): BlogArticlesState {
+  const [state, setState] = useState<BlogArticlesState>({ articles: [], status: 'loading' });
 
   useEffect(() => {
     let active = true;

@@ -1,17 +1,17 @@
 import { useCallback, useEffect, useState } from 'react';
 import { api } from '../api';
-import type { AdminArticle } from '../api/contracts';
+import type { AdminBlogArticle } from '../api/contracts';
 import { useAuth } from '../features/auth/AuthContext';
 
-interface AdminArticlesState {
-  articles: AdminArticle[];
+interface AdminBlogArticlesState {
+  articles: AdminBlogArticle[];
   status: 'loading' | 'ready' | 'error';
 }
 
 /** Loads all articles (drafts included) and exposes a reload after mutations. Mirrors useAdminStats.ts. */
-export function useAdminArticles() {
+export function useAdminBlogArticles() {
   const { token } = useAuth();
-  const [state, setState] = useState<AdminArticlesState>({ articles: [], status: 'loading' });
+  const [state, setState] = useState<AdminBlogArticlesState>({ articles: [], status: 'loading' });
 
   const reload = useCallback(() => {
     if (!token) {

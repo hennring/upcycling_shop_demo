@@ -21,7 +21,7 @@ const EMPTY_FORM: FormState = {
   published: false,
 };
 
-export function ArticleEditorPage() {
+export function BlogArticleEditorPage() {
   const { id } = useParams();
   const articleId = id ? Number(id) : null;
   const isEditing = articleId !== null;
@@ -123,7 +123,7 @@ export function ArticleEditorPage() {
         {isEditing ? 'Artikel bearbeiten' : 'Neuer Artikel'}
       </h1>
 
-      <form onSubmit={handleSubmit} className="mt-8 flex max-w-2xl flex-col gap-4">
+      <form onSubmit={handleSubmit} className="mt-8 flex w-full flex-col gap-4">
         <label className="flex flex-col gap-1">
           <span className="text-sm font-medium text-stone-700">Titel</span>
           <input

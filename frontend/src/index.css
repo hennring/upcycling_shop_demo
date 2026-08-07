@@ -17,3 +17,28 @@
   --font-display: 'Iowan Old Style', 'Palatino Linotype', Palatino, 'Book Antiqua', Georgia,
     serif;
 }
+
+/* Blog article switch: content slides in from the direction its neighbor button sits on. */
+@keyframes article-slide-in-from-left {
+  from {
+    opacity: 0;
+    transform: translateX(-24px);
+  }
+}
+@keyframes article-slide-in-from-right {
+  from {
+    opacity: 0;
+    transform: translateX(24px);
+  }
+}
+@keyframes article-fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [class*='animate-[article-'] {
+    animation: none !important;
+  }
+}

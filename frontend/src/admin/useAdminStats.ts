@@ -8,7 +8,7 @@ interface AdminStatsState {
   status: 'loading' | 'ready' | 'error';
 }
 
-/** Loads the dashboard tiles once per token. Mirrors useArticles.ts. */
+/** Loads the dashboard tiles once per token. Mirrors useBlogArticles.ts. */
 export function useAdminStats(): AdminStatsState {
   const { token } = useAuth();
   const [state, setState] = useState<AdminStatsState>({ stats: null, status: 'loading' });
