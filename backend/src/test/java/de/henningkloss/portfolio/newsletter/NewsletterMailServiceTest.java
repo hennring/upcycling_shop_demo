@@ -1,5 +1,6 @@
 package de.henningkloss.portfolio.newsletter;
 
+import de.henningkloss.portfolio.blog.BlogArticle;
 import jakarta.mail.MessagingException;
 import jakarta.mail.Session;
 import jakarta.mail.internet.MimeMessage;
@@ -24,7 +25,8 @@ import static org.mockito.Mockito.when;
 class NewsletterMailServiceTest {
 
     private final JavaMailSender mailSender = mock(JavaMailSender.class);
-    private final NewsletterMailService mailService = new NewsletterMailService(mailSender, "newsletter@example.com");
+    private final NewsletterMailService mailService =
+            new NewsletterMailService(mailSender, "newsletter@example.com", "https://foobar.de");
 
     private static Newsletter newsletter(String subject, String content) {
         return Newsletter.builder().subject(subject).content(content).build();
@@ -55,6 +57,34 @@ class NewsletterMailServiceTest {
         }
         assertThat(messages.get(0).getAllRecipients()[0].toString()).isEqualTo("max@example.com");
         assertThat(messages.get(1).getAllRecipients()[0].toString()).isEqualTo("erika@example.com");
+    }
+
+    @Test
+    void send_withLinkedArticle_appendsArticleLinkToContent() throws MessagingException, IOException {
+        when(mailSender.createMimeMessage())
+                .thenAnswer(invocation -> new MimeMessage(Session.getInstance(new Properties())));
+        BlogArticle article = BlogArticle.builder()
+                .title("Neuer Anstrich")
+                .slug("neuer-anstrich")
+                .content("...")
+                .build();
+        Newsletter newsletter = Newsletter.builder()
+                .subject("Werkstattbrief")
+                .content("<p>Hallo Werkstatt</p>")
+                .blogArticle(article)
+                .build();
+
+        mailService.send(newsletter, List.of("max@example.com"));
+
+        ArgumentCaptor<MimeMessage> sent = ArgumentCaptor.forClass(MimeMessage.class);
+        verify(mailSender).send(sent.capture());
+        MimeMessage message = sent.getValue();
+        message.saveChanges();
+        String body = (String) message.getContent();
+        assertThat(body).contains("<p>Hallo Werkstatt</p>");
+        assertThat(body).contains("href=\"https://foobar.de/werkstattbuch/neuer-anstrich\"");
+        assertThat(body).contains("Du willst noch mehr über diese Neuigkeit erfahren?<br>");
+        assertThat(body).contains(">Werkstattbrief</a>");
     }
 
     @Test

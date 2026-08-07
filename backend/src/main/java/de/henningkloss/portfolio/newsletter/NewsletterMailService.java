@@ -21,10 +21,15 @@ public class NewsletterMailService {
 
     private final JavaMailSender mailSender;
     private final String fromAddress;
+    private final String siteBaseUrl;
 
-    public NewsletterMailService(JavaMailSender mailSender, @Value("${app.mail.from}") String fromAddress) {
+    public NewsletterMailService(
+            JavaMailSender mailSender,
+            @Value("${app.mail.from}") String fromAddress,
+            @Value("${app.site.base-url}") String siteBaseUrl) {
         this.mailSender = mailSender;
         this.fromAddress = fromAddress;
+        this.siteBaseUrl = siteBaseUrl;
     }
 
     public void send(Newsletter newsletter, List<String> recipientEmails) {
@@ -43,7 +48,17 @@ public class NewsletterMailService {
         helper.setFrom(fromAddress);
         helper.setTo(recipientEmail);
         helper.setSubject(newsletter.getSubject());
-        helper.setText(newsletter.getContent(), true);
+        helper.setText(buildBody(newsletter), true);
         return message;
+    }
+
+    private String buildBody(Newsletter newsletter) {
+        if (newsletter.getBlogArticle() == null) {
+            return newsletter.getContent();
+        }
+        String articleUrl = siteBaseUrl + "/werkstattbuch/" + newsletter.getBlogArticle().getSlug();
+        return newsletter.getContent()
+                + "<p>Du willst noch mehr über diese Neuigkeit erfahren?<br>"
+                + "Dann schau in unserem <a href=\"" + articleUrl + "\">Werkstattbrief</a> vorbei.</p>";
     }
 }
