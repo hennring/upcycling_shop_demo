@@ -7,7 +7,7 @@ import { SiteFooter } from './SiteFooter';
 export function SiteLayout() {
   return (
     <div className="flex min-h-screen flex-col bg-stone-50 text-stone-900">
-      <div className="sticky top-0 z-20 flex">
+      <div className="sticky top-0 z-20 relative">
         <AdminEntry />
         <SiteHeader />
       </div>

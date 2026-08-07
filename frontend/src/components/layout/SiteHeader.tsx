@@ -39,7 +39,7 @@ export function SiteHeader() {
   const { pathname } = useLocation();
 
   return (
-    <header className="flex-1 border-b border-stone-200 bg-stone-50/90 backdrop-blur">
+    <header className="border-b border-stone-200 bg-stone-50/90 backdrop-blur">
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-6 px-6 py-4">
         <Link to="/" className="shrink-0">
           <BrandMark />
