@@ -1,21 +1,25 @@
 # Phasenplan: Portfolio-Webanwendung (CMS/CRM/Shop)
 
-Stand: 15.07.2026
+Stand: 10.08.2026
+
+Projektstatus: Mit Phase 6 gilt das Projekt vorerst als abgeschlossen. Phase 7 (Oracle Object Storage) ist der einzige offene nächste Schritt.
 
 ## Phasen
 
-- **Phase 0** – Infrastruktur-Fundament (Oracle-VM, Domain/DNS, k3s, Traefik/cert-manager, Repo-Struktur)
+- **Phase 0** – Infrastruktur-Fundament, Erkenntnisphase – **abgeschlossen**
+  - Ursprünglich geplant: Oracle-Cloud-VM (Always-Free-ARM) mit k3s, Traefik/cert-manager, eigene Domain über Cloudflare-DNS
+  - Ergebnis: Im Oracle Free Tier ließ sich keine VM-Instanz erstellen, damit war keine lauffähige Umgebung für diesen Ansatz zu schaffen. Konsequenz: Pivot auf einen Deployment-Stack ohne eigene VM – Details siehe Phase 6 und `architektur-entscheidungen.md`
 - **Phase 1** – Backend-Skelett (Spring Boot Module: auth, blog, newsletter, shop; DB-Schema) – **abgeschlossen**
   - Module: `auth` (Registrierung/Login/JWT, ADMIN-Bootstrap), `blog` (CMS-CRUD + öffentlicher Feed), `newsletter` (Opt-in, Token-Opt-out, Abonnentenzahl), `shop` (Produktkatalog, serverseitiger Warenkorb, kein Checkout)
   - Tabellen: `app_user`, `blog_article`, `subscriber`, `product`, `cart_item` (aus den Entities generiert)
   - Öffentlich: `GET /api/blog/**`, `GET /api/products/**`, `POST /api/newsletter/{subscribe,unsubscribe}`, `POST /api/auth/{register,login}`; alles unter `/api/admin/**` nur mit Rolle ADMIN
-- **Phase 2** – CI/CD & Erst-Deployment (siehe Deployment-Details in `architektur-entscheidungen.md`) – Pipeline früh etablieren, bevor weitere Features entstehen – **CI abgeschlossen, Deployment offen (wartet auf die VM aus Phase 0)**
+- **Phase 2** – CI/CD & Erst-Deployment (siehe Deployment-Details in `architektur-entscheidungen.md`) – Pipeline früh etablieren, bevor weitere Features entstehen – **abgeschlossen**
   - Pipeline (`.github/workflows/ci.yml`), Stufen laufen der Reihe nach: `backend-build-test` (`mvnw verify`) und `frontend-build-test` (`oxlint` + `tsc` + `vite build`) → `smoke-test` → `images`
   - `smoke-test` startet den kompletten Stack aus `docker-compose.yml` (nginx → Spring Boot → **echtes Postgres**) und prüft: Frontend liefert die App, `/actuator/health` ist UP, öffentlicher Blog-/Produkt-Feed antwortet, `/api/cart` gibt anonym 401, Registrierung + Login + `/api/auth/me` funktionieren durch den nginx-Proxy
   - `images` baut Backend und Frontend für `linux/amd64` **und `linux/arm64`** (die Oracle-VM ist ARM) und pusht bei Push auf `main` nach GHCR, getaggt mit Git-SHA und `latest`; auf Pull Requests wird nur gebaut, nicht gepusht
   - Der Maven-/npm-Build läuft dank `FROM --platform=$BUILDPLATFORM` nativ, nur die Runtime-Stage wird pro Architektur gebaut – kein QEMU, keine langen Build-Zeiten
   - Lokal identisch startbar: `docker compose up --build` → App auf http://localhost:8080, API direkt auf http://localhost:8081
-  - Deployment-Schritt bewusst noch nicht enthalten: der `deploy`-Job ist als TODO am Ende der Pipeline beschrieben (`kubectl apply -f infra/k8s/` + `kubectl set image ...:<SHA>` über ein `KUBECONFIG`-Secret), `infra/k8s` ist noch leer
+  - Deployment läuft nicht mehr über die Pipeline selbst, sondern automatisch über die native GitHub-Integration von Render (Backend, Docker-Build) und Vercel (Frontend) bei jedem Push auf `main` – Details siehe Phase 6
 - **Phase 3** – Frontend öffentlicher Bereich (Landing Page, News-Feed, Shop, Login/Registrierung, Newsletter-Formular) – **abgeschlossen**
   - Routing + `SiteLayout`; Routen: `/`, `/shop`, `/shop/:slug`, `/cart`, `/login`, 404. Landing Page (Hero, Produktkategorien, Prozess, Über uns, Werkstattbuch, Werkstattbrief, Material); Login/Registrierung mit JWT im `localStorage` (`AuthContext`), `LoginPage` respektiert ein `returnTo` aus dem Router-State
   - News-Feed aus `GET /api/blog`; Newsletter-Formular („Werkstattbrief", Abschnitt `#werkstattbrief`): nur für eingeloggte Nutzer, abonniert wird immer die Kontoadresse, Aufruf über `api.newsletter.subscribe()` → `POST /api/newsletter/subscribe` → `SubscriberService`
@@ -25,19 +29,24 @@ Stand: 15.07.2026
   - Backend-Ergänzungen für den Shop: `Product.category` (Enum `ProductCategory`, `@Enumerated(STRING)`, `NOT NULL`), `Product.material` (der Materialzettel aus `brand.md`, Abschnitt 9) und `Product.stock` inkl. `ProductRequest`/`ProductResponse`; `ProductFixture` (`app.fixtures.enabled=true`, wie `BlogArticleFixture`) legt 17 Demo-Produkte über alle fünf Kategorien an, zwei davon mit `stock = 0`, damit „vergriffen" im Shop sichtbar ist. Die Beschreibungen folgen der Textregel aus `brand.md`, Abschnitt 6 – die Stückzahl steht dabei im Feld, nicht im Text, sonst könnte der Warenkorb sie nicht durchsetzen. **Die Produktdaten liegen bewusst nur im Backend**, das Frontend hat keine Fixture
   - `active` bleibt der Soft-Delete (Produkt ist aus dem Katalog genommen), `stock = 0` heißt vergriffen: Das Produkt bleibt sichtbar, die Detailseite zeigt statt des Buttons den Hinweis auf die nächste Charge
   - Hinweise: `POST /api/newsletter/subscribe` bleibt öffentlich (Phase-1-Kontrakt, Idempotenz + kein Leak, ob eine Adresse bekannt ist) – der Login-Zwang ist damit eine Frontend-Regel, für eine verbindliche Bindung bräuchte es einen authentifizierten Endpunkt, der die Adresse aus dem Principal zieht. Produktbilder fehlen noch (`imageUrl` ist überall `null`), die Karten zeigen ein Platzhalterfeld mit Kategoriename – echte Bilder kommen mit dem Upload in Phase 5. `category` und `stock` sind `NOT NULL`: `ddl-auto=update` fügt solche Spalten nur in eine **leere** `product`-Tabelle ein – wer schon Produkte in seiner lokalen Postgres-Instanz hat, muss die Tabelle (oder das Volume) leeren. Genau der Fall, den der offene Prüfpunkt zur Schema-Verwaltung meint
-- **Phase 4** – Admin Dashboard mit Protected Routes, und Basis-Statistiken (z. B. Abonnentenzahl)
+- **Phase 4** – Admin Dashboard mit Protected Routes, und Basis-Statistiken (z. B. Abonnentenzahl) – **abgeschlossen**
 - **Phase 5** – Verwaltung (CMS & CRM): Artikel erstellen/löschen inkl. Bild-Upload, Newsletter-Editor & -Versand an Abonnenten – **abgeschlossen**
-  - Versand über `spring-boot-starter-mail`/`JavaMailSender` (SMTP), kein separater Dienst nötig: lokal zeigt `spring.mail.host` auf den neuen `mailhog`-Service in `docker-compose.yml` (Web-UI unter `http://localhost:8025`), produktiv auf Brevos SMTP-Relay (Zugangsdaten als Kubernetes-Secret, siehe `architektur-entscheidungen.md`, Abschnitt 4)
+  - Versand über `spring-boot-starter-mail`/`JavaMailSender` (SMTP), kein separater Dienst nötig: lokal zeigt `spring.mail.host` auf den neuen `mailhog`-Service in `docker-compose.yml` (Web-UI unter `http://localhost:8025`), produktiv auf Brevos SMTP-Relay (Zugangsdaten als Environment-Variablen im Render-Dashboard, siehe `architektur-entscheidungen.md`, Abschnitt 3)
   - Neuer Endpoint `POST /api/admin/newsletter/campaigns/{id}/send` (`AdminNewsletterController` → `NewsletterService.send`): lädt die aktiven Abonnenten (`SubscriberService.getActiveEmails`), verschickt den HTML-`content` des Newsletters an jeden über `NewsletterMailService`, setzt danach `status=SENT` und `sentAt`. Best-effort: eine fehlgeschlagene Zustellung wird geloggt und übersprungen, der Rest wird trotzdem verschickt. Ein bereits versendeter Newsletter lässt sich nicht erneut senden (`NewsletterAlreadySentException`, 409)
   - Absenderadresse über die neue, eigene Property `app.mail.from` (nicht die Admin-Login-Adresse)
   - Admin-Frontend: „Senden"-Button in `NewslettersPage.tsx`, nur für Entwürfe sichtbar, hinter `window.confirm` wie beim bestehenden Löschen-Muster
   - Der `smoke-test`-CI-Job prüft den Mailversand bewusst nicht; MailHog ist kein Teil der Pipeline-Assertions, läuft aber als Teil des lokalen `docker-compose.yml`-Stacks mit
-- **Phase 6** – Optional/Stretch: HPA, Prometheus/Grafana, Helm-Chart, zweiter k3s-Node
-- **Phase 7** – Firebase-Adapter als zweite Backend-Implementierung (siehe Abschnitt „Zwei-Backend-Strategie" in `architektur-entscheidungen.md`)
+- **Phase 6** – Produktiv-Deployment (Vercel/Render/Neon) – **abgeschlossen bis auf letzten Punkt**
+  - Frontend auf Vercel: statisches Vite-Build, `frontend/vercel.json` mit Rewrites für `/api/:path*` und `/uploads/:path*` auf den Render-Backend-Service sowie SPA-Fallback (`/(.*) → /index.html`)
+  - Backend auf Render: Docker-Build aus `backend/Dockerfile`, Konfiguration ausschließlich über Environment-Variablen im Render-Dashboard – nichts davon im Repo
+  - Datenbank: PostgreSQL bei Neon
+  - Da Vercel `/api` und `/uploads` auf Render proxied, bleiben Frontend- und Backend-Requests aus Browsersicht same-origin – CORS bleibt wie schon lokal effektiv ungenutzt
+  - Objekt-Storage läuft in diesem Stack übergangsweise weiterhin lokal auf dem Render-Backend-Container (`LocalFileStorageService`), siehe Phase 7
+  - **Offen:** Produktiv-Mailversand über Brevo SMTP-Relay (Free-Tier, 300 E-Mails/Tag) – Account existiert, Absender-Domain aber noch nicht per SPF/DKIM verifiziert, Render-Env-Vars noch nicht auf Brevo umgestellt; Schritte siehe `newsletter-produktion.md`. Lokal bleibt MailHog im `docker-compose.yml` unverändert im Einsatz
+- **Phase 7** – Oracle Object Storage Integration – **offen, nicht begonnen**
+  - Ablösung des aktuellen lokalen Datei-Storage (`app.storage.provider=local`, `LocalFileStorageService`) durch Oracle Cloud Object Storage für Uploads (z. B. Blog-Header-Bilder)
+  - Hintergrund: lokaler Storage im Render-Container gilt nicht als dauerhaft über Redeploys hinweg
 
 ## Offene Prüfpunkte
 
-- **Schema-Verwaltung (offen, vor dem Erst-Deployment):** Das Schema entsteht derzeit über `spring.jpa.hibernate.ddl-auto=update`. Der `smoke-test`-Job der Pipeline prüft inzwischen zwar gegen echtes Postgres statt H2, ändert an der Grundproblematik aber nichts: Das reicht für die Entwicklung, fügt aber nur hinzu – Spalten werden nie umbenannt, verkleinert oder gelöscht, und Constraints/Indizes aus früheren Läufen bleiben stehen. Vor dem ersten Deployment auf die echte Postgres-Instanz sollte entweder auf Migrationen (Flyway) umgestellt oder `ddl-auto=validate` plus manuell gepflegtes Schema gewählt werden.
-
-- **GitHub Student Developer Pack:** prüfen, ob Henning aktuell (Bildungsgutschein-Kurs) als Student zählt – ggf. kostenloser Domain-Gutschein und Cloud-Credits nutzbar.
-- **Oracle-Cloud-Risiko:** Free-Tier-Limits wurden im Juni 2026 für reine Free-Tier-Accounts auf 2 OCPU/12 GB halbiert; Pay-as-you-go-Accounts (Kreditkarte hinterlegt, aber innerhalb Free-Grenzen) behalten 4 OCPU/24 GB. Zudem gibt es 2026 strengere/uneinheitliche Account-Freigaben. Empfehlung: Account früh anlegen, PAYG-Modus wählen, Fallback im Hinterkopf behalten (z. B. Hetzner ~4 €/Monat, leicht über Budget).
+- **Schema-Verwaltung (weiterhin offen):** Das Schema entsteht derzeit über `spring.jpa.hibernate.ddl-auto=update`. Der `smoke-test`-Job der Pipeline prüft inzwischen zwar gegen echtes Postgres statt H2, ändert an der Grundproblematik aber nichts: Das reicht für die Entwicklung, fügt aber nur hinzu – Spalten werden nie umbenannt, verkleinert oder gelöscht, und Constraints/Indizes aus früheren Läufen bleiben stehen. Für eine belastbarere Schema-Verwaltung sollte entweder auf Migrationen (Flyway) umgestellt oder `ddl-auto=validate` plus manuell gepflegtes Schema gewählt werden.
