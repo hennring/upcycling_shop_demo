@@ -4,15 +4,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.List;
-import java.util.Locale;
 import java.util.UUID;
 
 /**
@@ -24,8 +21,6 @@ import java.util.UUID;
 @Service
 @ConditionalOnProperty(name = "app.storage.provider", havingValue = "local", matchIfMissing = true)
 public class LocalFileStorageService implements FileStorageService {
-
-    private static final List<String> ALLOWED_EXTENSIONS = List.of("jpg", "jpeg", "png", "webp");
 
     private final Path basePath;
     private final String publicPath;
@@ -39,10 +34,7 @@ public class LocalFileStorageService implements FileStorageService {
 
     @Override
     public String store(MultipartFile file, String subdirectory) {
-        String extension = extensionOf(file.getOriginalFilename());
-        if (!ALLOWED_EXTENSIONS.contains(extension)) {
-            throw new UnsupportedFileTypeException("Unsupported file type: " + extension);
-        }
+        String extension = UploadFileValidator.validateAndExtractExtension(file.getOriginalFilename());
 
         String filename = UUID.randomUUID() + "." + extension;
         Path targetDir = basePath.resolve(subdirectory);
@@ -57,13 +49,5 @@ public class LocalFileStorageService implements FileStorageService {
 
         log.info("Stored uploaded file at {}", target);
         return publicPath + "/" + subdirectory + "/" + filename;
-    }
-
-    private String extensionOf(String originalFilename) {
-        if (!StringUtils.hasText(originalFilename) || !originalFilename.contains(".")) {
-            throw new UnsupportedFileTypeException("File has no extension");
-        }
-        String extension = originalFilename.substring(originalFilename.lastIndexOf('.') + 1);
-        return extension.toLowerCase(Locale.ROOT);
     }
 }
