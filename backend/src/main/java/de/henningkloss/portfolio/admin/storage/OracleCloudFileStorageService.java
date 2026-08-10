@@ -2,6 +2,7 @@ package de.henningkloss.portfolio.admin.storage;
 
 import jakarta.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
@@ -36,6 +37,7 @@ public class OracleCloudFileStorageService implements FileStorageService {
     private final String bucket;
     private final String publicBaseUrl;
 
+    @Autowired
     public OracleCloudFileStorageService(
             @Value("${app.storage.oracle.endpoint}") String endpoint,
             @Value("${app.storage.oracle.region}") String region,
