@@ -41,7 +41,7 @@ public class SecurityConfig {
     private final Environment environment;
 
     /** Origins of the Vite dev server / deployed frontend, comma separated. */
-    @Value("${app.cors.allowed-origins:http://localhost:5173}")
+    @Value("${app.cors.allowed-origins}")
     private List<String> allowedOrigins;
 
     @Bean
