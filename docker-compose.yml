@@ -35,6 +35,9 @@ services:
       DB_URL: jdbc:postgresql://db:5432/portfolio
       DB_USERNAME: portfolio
       DB_PASSWORD: portfolio
+      # local DB only holds fixtures, so rebuild the schema from the entities on every
+      # start instead of the incremental "update" (which can't handle e.g. a new NOT NULL column)
+      DDL_AUTO: create
       JWT_SECRET: ${JWT_SECRET:-local-compose-secret-local-compose-secret}
       # nginx proxies /api, so browser requests are same-origin and CORS stays unused
       CORS_ALLOWED_ORIGINS: http://localhost:8080
