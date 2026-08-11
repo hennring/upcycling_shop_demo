@@ -1,8 +1,8 @@
 # Phasenplan: Portfolio-Webanwendung (CMS/CRM/Shop)
 
-Stand: 10.08.2026
+Stand: 11.08.2026
 
-Projektstatus: Mit Phase 6 gilt das Projekt vorerst als abgeschlossen. Phase 7 (Oracle Object Storage) ist der einzige offene nächste Schritt.
+Projektstatus: Mit Phase 7 gelten alle geplanten Phasen als abgeschlossen.
 
 ## Phasen
 
@@ -36,17 +36,16 @@ Projektstatus: Mit Phase 6 gilt das Projekt vorerst als abgeschlossen. Phase 7 (
   - Absenderadresse über die neue, eigene Property `app.mail.from` (nicht die Admin-Login-Adresse)
   - Admin-Frontend: „Senden"-Button in `NewslettersPage.tsx`, nur für Entwürfe sichtbar, hinter `window.confirm` wie beim bestehenden Löschen-Muster
   - Der `smoke-test`-CI-Job prüft den Mailversand bewusst nicht; MailHog ist kein Teil der Pipeline-Assertions, läuft aber als Teil des lokalen `docker-compose.yml`-Stacks mit
-- **Phase 6** – Produktiv-Deployment (Vercel/Render/Neon) – **abgeschlossen bis auf letzten Punkt**
+- **Phase 6** – Produktiv-Deployment (Vercel/Render/Neon) – **abgeschlossen**
   - Frontend auf Vercel: statisches Vite-Build, `frontend/vercel.json` mit Rewrites für `/api/:path*` und `/uploads/:path*` auf den Render-Backend-Service sowie SPA-Fallback (`/(.*) → /index.html`)
   - Backend auf Render: Docker-Build aus `backend/Dockerfile`, Konfiguration ausschließlich über Environment-Variablen im Render-Dashboard – nichts davon im Repo
   - Datenbank: PostgreSQL bei Neon
   - Da Vercel `/api` und `/uploads` auf Render proxied, bleiben Frontend- und Backend-Requests aus Browsersicht same-origin – CORS bleibt wie schon lokal effektiv ungenutzt
-  - Objekt-Storage läuft in diesem Stack übergangsweise weiterhin lokal auf dem Render-Backend-Container (`LocalFileStorageService`), siehe Phase 7
-  - **Offen:** Produktiv-Mailversand über Brevo SMTP-Relay (Free-Tier, 300 E-Mails/Tag) – Account existiert, Absender-Domain aber noch nicht per SPF/DKIM verifiziert, Render-Env-Vars noch nicht auf Brevo umgestellt; Schritte siehe `newsletter-produktion.md`. Lokal bleibt MailHog im `docker-compose.yml` unverändert im Einsatz
-- **Phase 7** – Oracle Object Storage Integration – **offen, nicht begonnen**
-  - Ablösung des aktuellen lokalen Datei-Storage (`app.storage.provider=local`, `LocalFileStorageService`) durch Oracle Cloud Object Storage für Uploads (z. B. Blog-Header-Bilder)
-  - Hintergrund: lokaler Storage im Render-Container gilt nicht als dauerhaft über Redeploys hinweg
+  - Produktiv-Mailversand über Brevo SMTP-Relay (Free-Tier, 300 E-Mails/Tag) eingerichtet: `MAIL_HOST=smtp-relay.brevo.com`, `MAIL_PORT=2525` (statt 587/465 – Render blockt auf Free-Tier-Web-Services ausgehenden Traffic auf Port 25/465/587), `MAIL_USERNAME` der exakte Brevo-SMTP-Login, `MAIL_PASSWORD` der Brevo-SMTP-Key, Absender über Brevo-Single-Sender-Verifizierung (keine eigene Domain nötig). Lokal bleibt MailHog im `docker-compose.yml` unverändert im Einsatz
+- **Phase 7** – Oracle Object Storage Integration – **abgeschlossen**
+  - Ablösung des lokalen Datei-Storage (`app.storage.provider=local`, `LocalFileStorageService`) durch Oracle Cloud Object Storage (`OracleCloudFileStorageService`, S3-kompatibel über das AWS SDK) für Uploads (z. B. Blog-Header-Bilder)
+  - Hintergrund: lokaler Storage im Render-Container galt nicht als dauerhaft über Redeploys hinweg
 
 ## Offene Prüfpunkte
 
-- **Schema-Verwaltung (weiterhin offen):** Das Schema entsteht derzeit über `spring.jpa.hibernate.ddl-auto=update`. Der `smoke-test`-Job der Pipeline prüft inzwischen zwar gegen echtes Postgres statt H2, ändert an der Grundproblematik aber nichts: Das reicht für die Entwicklung, fügt aber nur hinzu – Spalten werden nie umbenannt, verkleinert oder gelöscht, und Constraints/Indizes aus früheren Läufen bleiben stehen. Für eine belastbarere Schema-Verwaltung sollte entweder auf Migrationen (Flyway) umgestellt oder `ddl-auto=validate` plus manuell gepflegtes Schema gewählt werden.
+- **Schema-Verwaltung / fehlende DB-Migration (weiterhin offen):** Das Schema entsteht derzeit über `spring.jpa.hibernate.ddl-auto=update`. Der `smoke-test`-Job der Pipeline prüft inzwischen zwar gegen echtes Postgres statt H2, ändert an der Grundproblematik aber nichts: Das reicht für die Entwicklung, fügt aber nur hinzu – Spalten werden nie umbenannt, verkleinert oder gelöscht, und Constraints/Indizes aus früheren Läufen bleiben stehen. Für eine belastbarere Schema-Verwaltung mit versionierten, nachvollziehbaren Migrationen bietet sich ein dediziertes Migrationswerkzeug an, z. B. **Flyway** oder **Liquibase**; alternativ `ddl-auto=validate` plus manuell gepflegtes Schema.
