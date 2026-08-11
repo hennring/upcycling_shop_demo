@@ -55,3 +55,11 @@ Stichworte & Hinweise für die Recherche:
 ## Abgabe
 
 Pushe deine Lösung in dieses Repository und warte auf Feedback im Feedback PR.
+
+## Live-Demo
+
+Die App kann unter https://web-shop-test-sooty.vercel.app begutachtet werden.
+
+Für Admin-Zugangsdaten bitte den Contributor (Henning Kloß) kontaktieren.
+
+Hinweis: Das Laden der Daten aus dem Backend kann teilweise sehr lange dauern, da der Service kostenlos auf Render gehostet wird und nach längerer Inaktivität erst wieder hochgefahren werden muss.
