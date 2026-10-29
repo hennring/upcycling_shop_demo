@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
+import { LoadingNotice } from '../../components/LoadingNotice';
 import { NotFoundPage } from '../../pages/NotFoundPage';
 import type { BlogArticle } from '../../api/contracts';
 import { useBlogArticles } from './useBlogArticles';
@@ -66,6 +67,7 @@ export function BlogArticleDetailPage() {
   if (status === 'loading') {
     return (
       <div className="mx-auto max-w-3xl px-6 py-16" aria-busy="true">
+        <LoadingNotice className="mb-6" />
         <div className="aspect-16/9 animate-pulse rounded-2xl bg-stone-200" />
         <div className="mt-8 space-y-4">
           <div className="h-8 w-2/3 animate-pulse rounded bg-stone-200" />

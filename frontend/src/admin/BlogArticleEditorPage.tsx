@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { api } from '../api';
 import { useAuth } from '../features/auth/AuthContext';
+import { LoadingNotice } from '../components/LoadingNotice';
 
 interface FormState {
   title: string;
@@ -108,7 +109,7 @@ export function BlogArticleEditorPage() {
   }
 
   if (loadStatus === 'loading') {
-    return <p className="text-sm text-stone-500">Laden...</p>;
+    return <LoadingNotice />;
   }
 
   if (loadStatus === 'missing' || loadStatus === 'error') {

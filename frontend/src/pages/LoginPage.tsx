@@ -2,6 +2,7 @@ import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import type { User } from '../api/contracts';
 import { AuthForm } from '../features/auth/AuthForm';
 import { useAuth } from '../features/auth/AuthContext';
+import { LoadingNotice } from '../components/LoadingNotice';
 
 /**
  * A caller-requested redirect target, e.g. the cart sends visitors back to "/cart" after
@@ -36,7 +37,7 @@ export function LoginPage() {
   const explicitReturnTo = resolveExplicitReturnTo(state);
 
   if (loading) {
-    return <p className="mx-auto max-w-sm p-6 text-sm text-stone-500">Laden...</p>;
+    return <LoadingNotice className="mx-auto max-w-sm p-6" />;
   }
 
   if (user) {

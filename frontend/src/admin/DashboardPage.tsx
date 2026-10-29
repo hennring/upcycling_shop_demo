@@ -1,4 +1,5 @@
 import { useAdminStats } from './useAdminStats';
+import { LoadingNotice } from '../components/LoadingNotice';
 
 interface Tile {
   label: string;
@@ -23,7 +24,7 @@ export function DashboardPage() {
     <div>
       <h1 className="font-display text-3xl font-semibold text-stone-900">Dashboard</h1>
 
-      {status === 'loading' && <p className="mt-8 text-sm text-stone-500">Laden...</p>}
+      {status === 'loading' && <LoadingNotice className="mt-8" />}
 
       {status === 'error' && (
         <p className="mt-8 rounded-2xl border border-brass/60 bg-brass/10 p-6 text-stone-700">

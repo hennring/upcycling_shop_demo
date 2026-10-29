@@ -1,4 +1,5 @@
 import { useSearchParams } from 'react-router-dom';
+import { LoadingNotice } from '../../components/LoadingNotice';
 import { useCategories } from './CategoriesContext';
 import { ProductCard } from './ProductCard';
 import { categoryFromSlug, categorySlug } from './categories';
@@ -64,11 +65,14 @@ export function ShopPage() {
 
       <div className="mt-12">
         {status === 'loading' && (
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3" aria-busy="true">
-            {[0, 1, 2, 3, 4, 5].map((index) => (
-              <div key={index} className="h-80 animate-pulse rounded-2xl bg-stone-200" />
-            ))}
-          </div>
+          <>
+            <LoadingNotice className="mb-6" />
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3" aria-busy="true">
+              {[0, 1, 2, 3, 4, 5].map((index) => (
+                <div key={index} className="h-80 animate-pulse rounded-2xl bg-stone-200" />
+              ))}
+            </div>
+          </>
         )}
 
         {status === 'error' && (

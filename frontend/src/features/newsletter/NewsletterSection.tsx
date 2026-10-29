@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
 import { NewsletterForm } from './NewsletterForm';
+import { LoadingNotice } from '../../components/LoadingNotice';
 
 /** Anchor target of the header/footer link and of the return path after login. */
 export const NEWSLETTER_ANCHOR = 'werkstattbrief';
@@ -29,7 +30,7 @@ export function NewsletterSection() {
         </div>
 
         <div className="rounded-2xl border border-stone-200 bg-stone-50 p-8 lg:mt-4">
-          {loading && <p className="text-sm text-stone-500">Laden...</p>}
+          {loading && <LoadingNotice />}
 
           {/* Signing up is tied to the account, so the address is never typed in here */}
           {!loading && !user && (

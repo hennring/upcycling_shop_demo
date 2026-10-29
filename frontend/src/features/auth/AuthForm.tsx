@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { api } from '../../api';
 import type { User } from '../../api/contracts';
+import { LoadingNotice } from '../../components/LoadingNotice';
 
 interface AuthFormProps {
   onAuthenticated: (user: User, token: string) => void;
@@ -84,6 +85,9 @@ export function AuthForm({ onAuthenticated }: AuthFormProps) {
       </div>
 
       {error && <p className="text-sm text-red-700">{error}</p>}
+      {submitting && (
+        <LoadingNotice label={mode === 'login' ? 'Anmeldung läuft...' : 'Konto wird angelegt...'} />
+      )}
 
       <button
         type="submit"

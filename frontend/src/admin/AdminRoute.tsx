@@ -1,6 +1,7 @@
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '../features/auth/AuthContext';
 import { AdminForbiddenPage } from './AdminForbiddenPage';
+import { LoadingNotice } from '../components/LoadingNotice';
 
 /**
  * Guards everything under /admin. Three outcomes: not logged in -> /login (with returnTo,
@@ -14,7 +15,7 @@ export function AdminRoute() {
   const location = useLocation();
 
   if (loading) {
-    return <p className="mx-auto max-w-4xl px-6 py-24 text-sm text-stone-500">Laden...</p>;
+    return <LoadingNotice className="mx-auto max-w-4xl px-6 py-24" />;
   }
 
   if (!user) {

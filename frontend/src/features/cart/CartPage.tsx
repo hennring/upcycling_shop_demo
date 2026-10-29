@@ -4,6 +4,7 @@ import type { CartLine } from '../../api/contracts';
 import { useAuth } from '../auth/AuthContext';
 import { formatPrice } from '../shop/money';
 import { useCart } from './CartContext';
+import { LoadingNotice } from '../../components/LoadingNotice';
 
 /** Technical line limit of the backend; the stock of a batch is usually the tighter bound. */
 const MAX_QUANTITY = 99;
@@ -93,7 +94,7 @@ export function CartPage() {
   const [checkoutAttempted, setCheckoutAttempted] = useState(false);
 
   if (loading || status === 'loading') {
-    return <p className="mx-auto max-w-4xl px-6 py-24 text-sm text-stone-500">Laden...</p>;
+    return <LoadingNotice className="mx-auto max-w-4xl px-6 py-24" />;
   }
 
   if (!user) {

@@ -4,6 +4,7 @@ import { api } from '../api';
 import type { AdminBlogArticle } from '../api/contracts';
 import { useAuth } from '../features/auth/AuthContext';
 import { RichTextEditor } from './RichTextEditor';
+import { LoadingNotice } from '../components/LoadingNotice';
 
 interface FormState {
   subject: string;
@@ -92,7 +93,7 @@ export function NewsletterEditorPage() {
   }
 
   if (loadStatus === 'loading') {
-    return <p className="text-sm text-stone-500">Laden...</p>;
+    return <LoadingNotice />;
   }
 
   if (loadStatus === 'missing' || loadStatus === 'error') {

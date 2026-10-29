@@ -1,4 +1,5 @@
 import { Link, useParams } from 'react-router-dom';
+import { LoadingNotice } from '../../components/LoadingNotice';
 import { NotFoundPage } from '../../pages/NotFoundPage';
 import { AddToCartButton } from '../cart/AddToCartButton';
 import { MaterialTag } from './MaterialTag';
@@ -17,6 +18,7 @@ export function ProductDetailPage() {
   if (status === 'loading') {
     return (
       <div className="mx-auto max-w-6xl px-6 py-16" aria-busy="true">
+        <LoadingNotice className="mb-6" />
         <div className="grid gap-12 lg:grid-cols-2">
           <div className="aspect-4/3 animate-pulse rounded-2xl bg-stone-200" />
           <div className="space-y-4">

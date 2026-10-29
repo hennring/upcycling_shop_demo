@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import type { BlogArticle } from '../../api/contracts';
+import { LoadingNotice } from '../../components/LoadingNotice';
 import { useBlogArticles } from '../blog/useBlogArticles';
 
 const DATE_FORMAT = new Intl.DateTimeFormat('de-DE', {
@@ -63,11 +64,14 @@ export function BlogArticleSection() {
 
         <div className="mt-14">
           {status === 'loading' && (
-            <div className="grid gap-6 md:grid-cols-3" aria-busy="true">
-              {[0, 1, 2].map((index) => (
-                <div key={index} className="h-56 animate-pulse rounded-2xl bg-stone-200" />
-              ))}
-            </div>
+            <>
+              <LoadingNotice className="mb-6" />
+              <div className="grid gap-6 md:grid-cols-3" aria-busy="true">
+                {[0, 1, 2].map((index) => (
+                  <div key={index} className="h-56 animate-pulse rounded-2xl bg-stone-200" />
+                ))}
+              </div>
+            </>
           )}
 
           {status === 'error' && (

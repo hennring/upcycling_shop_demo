@@ -3,6 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import type { Product } from '../../api/contracts';
 import { useAuth } from '../auth/AuthContext';
 import { useCart } from './CartContext';
+import { LoadingNotice } from '../../components/LoadingNotice';
 
 /**
  * Adds a product to the server-side cart. Anonymous visitors are sent to the login with a
@@ -16,7 +17,7 @@ export function AddToCartButton({ product }: { product: Product }) {
   const [added, setAdded] = useState(false);
 
   if (loading) {
-    return <p className="text-sm text-stone-500">Laden...</p>;
+    return <LoadingNotice />;
   }
 
   if (!user) {

@@ -3,6 +3,7 @@ import { api } from '../api';
 import type { AdminNewsletter } from '../api/contracts';
 import { useAuth } from '../features/auth/AuthContext';
 import { useAdminNewsletters } from './useAdminNewsletters';
+import { LoadingNotice } from '../components/LoadingNotice';
 
 function formatDate(iso: string | null): string {
   if (!iso) return '-';
@@ -135,7 +136,7 @@ export function NewslettersPage() {
         </Link>
       </div>
 
-      {status === 'loading' && <p className="mt-8 text-sm text-stone-500">Laden...</p>}
+      {status === 'loading' && <LoadingNotice className="mt-8" />}
 
       {status === 'error' && (
         <p className="mt-8 rounded-2xl border border-brass/60 bg-brass/10 p-6 text-stone-700">

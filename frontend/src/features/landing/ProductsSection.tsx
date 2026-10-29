@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import type { Category } from '../../api/contracts';
+import { LoadingNotice } from '../../components/LoadingNotice';
 import { useCategories } from '../shop/CategoriesContext';
 import { categorySlug } from '../shop/categories';
 import { formatPrice } from '../shop/money';
@@ -16,7 +17,7 @@ function priceRangeLabel(category: Category): string {
 }
 
 export function ProductsSection() {
-  const { categories } = useCategories();
+  const { categories, status } = useCategories();
 
   return (
     <section id="produkte" className="scroll-mt-20 bg-stone-50 py-24">
@@ -29,6 +30,8 @@ export function ProductsSection() {
           Das Material entscheidet, nicht der Katalog. Deshalb wechselt das Angebot – und was
           durch ist, ist durch.
         </p>
+
+        {status === 'loading' && <LoadingNotice className="mt-14" />}
 
         <div className="mt-14 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {categories.map((category) => (
