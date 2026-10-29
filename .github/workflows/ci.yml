@@ -59,10 +59,39 @@ jobs:
   smoke-test:
     needs: [backend-build-test, frontend-build-test]
     runs-on: ubuntu-latest
+    env:
+      # pinned so the images built below get the names compose looks for (<project>-<service>)
+      COMPOSE_PROJECT_NAME: smoke
     steps:
       - uses: actions/checkout@v4
-      - name: Build images and start the stack
-        run: docker compose up --build --detach --wait --wait-timeout 300
+      - uses: docker/setup-buildx-action@v3
+      # Built here instead of `docker compose up --build`, because plain compose builds have no
+      # layer cache on a fresh runner and re-download every Maven/npm dependency on each run.
+      # Also reads the `images` job's cache: the build stages run on $BUILDPLATFORM there too,
+      # so the dependency layers are identical. Writes its own scope so the two jobs don't
+      # overwrite each other's cache.
+      - name: Build backend image
+        uses: docker/build-push-action@v6
+        with:
+          context: backend
+          load: true
+          tags: smoke-backend:latest
+          cache-from: |
+            type=gha,scope=smoke-backend
+            type=gha,scope=backend
+          cache-to: type=gha,mode=max,scope=smoke-backend
+      - name: Build frontend image
+        uses: docker/build-push-action@v6
+        with:
+          context: frontend
+          load: true
+          tags: smoke-frontend:latest
+          cache-from: |
+            type=gha,scope=smoke-frontend
+            type=gha,scope=frontend
+          cache-to: type=gha,mode=max,scope=smoke-frontend
+      - name: Start the stack
+        run: docker compose up --no-build --detach --wait --wait-timeout 300
       - name: Frontend serves the app
         run: |
           curl --fail --silent --show-error http://localhost:8080/healthz
